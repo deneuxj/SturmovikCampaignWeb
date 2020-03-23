@@ -1,0 +1,13 @@
+PUT http://127.0.0.1:8080/control/reset
+
+PUT http://127.0.0.1:8080/control/advance
+
+GET http://127.0.0.1:8080/query/world
+
+GET http://127.0.0.1:8080/query/current
+
+GET http://127.0.0.1:8080/query/dates
+
+GET http://127.0.0.1:8080/query/past/1
+
+GET http://127.0.0.1:8080/query/simulation/2
