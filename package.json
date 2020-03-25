@@ -1,0 +1,22 @@
+{
+  "name": "sturmovikcampaignclient",
+  "version": "1.0.0",
+  "description": "Web site to visualize dynamic campaigns for IL-2 Sturmovik: Great Battles",
+  "main": "js/client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deneuxj/SturmovikCampaignWeb.git"
+  },
+  "author": "Johann Deneux",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deneuxj/SturmovikCampaignWeb/issues"
+  },
+  "homepage": "https://github.com/deneuxj/SturmovikCampaignWeb#readme",
+  "dependencies": {
+    "@types/leaflet": "^1.5.12"
+  }
+}
