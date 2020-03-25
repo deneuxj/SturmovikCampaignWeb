@@ -34,11 +34,64 @@ interface DateTime {
     Minute: number
 }
 
-class BorderRenderer {
-    regions: Region[]
+interface GroundForces {
+    Region: string
+    Coalition: string
+    Forces: number
+}
 
-    constructor(world: World) {
-        this.regions = world.Regions
+interface WarState {
+    Date: DateTime
+    GroundForces: GroundForces[]
+    RegionOwner: Record<string, string>
+}
+
+class RegionWithOwner {
+    properties: Region
+    owner: string
+
+    constructor(region: Region, owner: string) {
+        this.properties = region
+        this.owner = owner
+    }
+
+    get color() {
+        if (this.owner == "Allies")
+            return "red"
+        else if (this.owner == "Axis")
+            return "blue"
+        else
+            return "gray"
+    }
+}
+
+type DrawLineFun = (v1: Vector2, v2: Vector2, color: string) => void
+
+class BorderRenderer {
+    regions: Map<string, RegionWithOwner>
+
+    drawLine: DrawLineFun
+
+    constructor(drawLine: DrawLineFun, world: World, state: WarState) {
+        this.drawLine = drawLine
+        this.regions = new Map()
+        for (const region of world.Regions) {
+            const owner = state.RegionOwner[region.Id] ?? "Neutral"
+            const ro = new RegionWithOwner(region, owner)
+            this.regions.set(region.Id, ro)
+        }
+    }
+
+    drawBorders() {
+        for (const region of this.regions.values()) {
+            const vertices = region.properties.Boundary
+            for (let i = 0; i < vertices.length - 1; ++i) {
+                const v1 = vertices[i]
+                const v2 = vertices[i+1]
+                const color = region.color
+                this.drawLine(v1, v2, color)
+            }
+        }
     }
 }
 
@@ -60,6 +113,8 @@ function getMapBounds(mapName: string) {
 let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
+
+let daysPolys: L.Polyline[] = []
 
 let dayslist = document.getElementById("dayslist") as HTMLUListElement
 
@@ -126,19 +181,35 @@ map.on("viewreset", async() => {
             const dates = await response.json() as DateTime[]
             function newEntry(idx: number, label: string) {
                 const li = document.createElement("li")
-                li.setAttribute("id", `campaign-day-${idx}`)
-                function fetchDayData(this: HTMLElement): any {
-                    console.debug(`fetch data for day ${idx}`)
+                async function fetchDayData(this: HTMLElement): Promise<any> {
+                    const query = (idx != -1) ? `/query/past/${idx}` : "/query/current"
+                    const dayResponse = await fetch(config.campaignServerUrl + query)
+                    if (dayResponse.ok && world != undefined) {
+                        const dayData = await dayResponse.json() as WarState
+                        function drawLine(v1: Vector2, v2: Vector2, color: string) {
+                            const p1 = transform(v1)
+                            const p2 = transform(v2)
+                            const poly = L.polyline([p1, p2], { color: color })
+                            daysPolys.push(poly)
+                            poly.addTo(map)
+                        }
+                        const regionsWithOwners = new BorderRenderer(drawLine, world, dayData)
+                        for (const polyline of daysPolys) {
+                            map.removeLayer(polyline)
+                        }
+                        daysPolys = []
+                        regionsWithOwners.drawBorders()
+                        console.debug("Received day data")
+                    }
                 }        
                 li.addEventListener("click", fetchDayData)
                 const a = document.createElement("a")
                 const txt = new Text(label)
                 a.appendChild(txt)
                 li.appendChild(a)
-                console.debug(`newEntry ${li}`)
                 return li
             }
-            dayslist.appendChild(newEntry(-1, "Clear"))
+            dayslist.appendChild(newEntry(-1, "Latest"))
             for (let index = 0; index < dates.length; index++) {
                 const date = dates[index];
                 dayslist.appendChild(newEntry(index, `${date.Year}-${date.Month}-${date.Day} ${date.Hour}:${date.Minute}`))                
