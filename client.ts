@@ -1,4 +1,4 @@
-/// <reference path="node_modules/@types/leaflet/index.d.ts" />
+/// <reference path="./node_modules/@types/leaflet/index.d.ts" />
 
 interface Vector2 {
     X: number
@@ -26,6 +26,22 @@ interface World {
     Airfields: Airfield[]
 }
 
+interface DateTime {
+    Year: number
+    Month: number
+    Day: number
+    Hour: number
+    Minute: number
+}
+
+class BorderRenderer {
+    regions: Region[]
+
+    constructor(world: World) {
+        this.regions = world.Regions
+    }
+}
+
 let config = {
     campaignServerUrl: "http://127.0.0.1:8080",
 }
@@ -44,6 +60,8 @@ function getMapBounds(mapName: string) {
 let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
+
+let dayslist = document.getElementById("dayslist") as HTMLUListElement
 
 var mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     {
@@ -81,28 +99,58 @@ map.on("viewreset", async() => {
                     new L.LatLng(
                         bounds.getSouth() + leafHeight * (v.X - mapSW.X) / mapHeight,
                         bounds.getWest() + leafWidth * (v.Y - mapSW.Y) / mapWidth);
-                console.info("New transform defined")
+                // console.info("New transform defined")
             }
             else {
                 console.error(`Bounds for map '${mapName}' are unknown`)
             }
             for (let i = 0; i < world.Regions.length; i++) {
                 const region = world.Regions[i];
-                console.info(`Add region ${region.Id}`)
+                // console.info(`Add region ${region.Id}`)
                 let m = L.marker(transform(region.Position), {
                     title: region.Id,
                     alt: `Region ${region.Id}`
                 }).addTo(map)
-                console.info(` at ${m.getLatLng()}`)
+                // console.info(` at ${m.getLatLng()}`)
             }
         }
     }
     else {
         console.info("viewreset: Response status was not OK")
     }
+
+    // Get the list of days
+    if (dayslist != null) {
+        const response = await fetch(config.campaignServerUrl + "/query/dates")
+        if (response.ok) {
+            const dates = await response.json() as DateTime[]
+            function newEntry(idx: number, label: string) {
+                const li = document.createElement("li")
+                li.setAttribute("id", `campaign-day-${idx}`)
+                function fetchDayData(this: HTMLElement): any {
+                    console.debug(`fetch data for day ${idx}`)
+                }        
+                li.addEventListener("click", fetchDayData)
+                const a = document.createElement("a")
+                const txt = new Text(label)
+                a.appendChild(txt)
+                li.appendChild(a)
+                console.debug(`newEntry ${li}`)
+                return li
+            }
+            dayslist.appendChild(newEntry(-1, "Clear"))
+            for (let index = 0; index < dates.length; index++) {
+                const date = dates[index];
+                dayslist.appendChild(newEntry(index, `${date.Year}-${date.Month}-${date.Day} ${date.Hour}:${date.Minute}`))                
+            }
+        }
+    }
+    else {
+        console.error("Could not find UL element 'dayslist'")
+    }
 })
 
-map.on("click", async(args : L.LeafletMouseEvent) => {
+map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
 })
 
