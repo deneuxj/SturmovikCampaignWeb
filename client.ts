@@ -47,6 +47,57 @@ interface WarState {
     RegionOwner: Record<string, string>
 }
 
+type ValueType = number | string | object | Record<string, number | string | object>
+
+interface Command {
+    Verb: string
+    Args: Record<string, ValueType>
+}
+
+function commandToHtml(cmd: Command) {
+    const p = document.createElement("p")
+    const txt = document.createTextNode(cmd.Verb)
+    p.appendChild(txt)
+    return p
+}
+
+interface Result {
+    ChangeDescription: string
+    Values: Record<string, ValueType>
+}
+
+function resultToHtml(result: Result) {
+    const li = document.createElement("li")
+    const txt = document.createTextNode(result.ChangeDescription)
+    li.appendChild(txt)
+    return li
+}
+
+interface SimulationStep {
+    Description: string
+    Command: Command[]
+    Results: Result[]
+}
+
+function simulationStepToHtml(step : SimulationStep) {
+    const div = document.createElement("div")
+    const p = document.createElement("p")
+    const txt = document.createTextNode(step.Description)
+    p.appendChild(txt)
+    div.appendChild(p)
+    for (const cmd of step.Command) {
+        div.appendChild(commandToHtml(cmd))
+    }
+    if (step.Results.length > 0) {
+        const ul = document.createElement("ul")
+        for (const result of step.Results) {
+            ul.appendChild(resultToHtml(result))
+        }
+        div.appendChild(ul)
+    }
+    return div
+}
+
 class RegionWithOwner {
     properties: Region
     owner: string
@@ -66,7 +117,7 @@ class RegionWithOwner {
     }
 }
 
-// A silly function to print minutes, month and day numbers nicely, with at least 2 digits and a leading 0 if needed.
+// A silly function to print minutes, month and day numbers nicely, with 2 digits and a leading 0 if needed.
 function dig2(n: number): string {
     if (n < 10) 
         return "0" + n.toString()
@@ -99,7 +150,7 @@ class BorderRenderer {
     }
 }
 
-let config = {
+const config = {
     campaignServerUrl: "http://127.0.0.1:8080",
 }
 
@@ -120,9 +171,11 @@ let map = new L.Map("mapid", {
 
 let daysPolys: L.Polyline[] = []
 
-let dayslist = document.getElementById("list-days") as HTMLUListElement
+const dayslist = document.getElementById("list-days")
 
-var mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
+const dayEvents = document.getElementById("list-events")
+
+const mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     {
         tms: true,
         noWrap: true,
@@ -158,19 +211,16 @@ map.on("viewreset", async() => {
                     new L.LatLng(
                         bounds.getSouth() + leafHeight * (v.X - mapSW.X) / mapHeight,
                         bounds.getWest() + leafWidth * (v.Y - mapSW.Y) / mapWidth);
-                // console.info("New transform defined")
             }
             else {
                 console.error(`Bounds for map '${mapName}' are unknown`)
             }
             for (let i = 0; i < world.Regions.length; i++) {
                 const region = world.Regions[i];
-                // console.info(`Add region ${region.Id}`)
                 let m = L.marker(transform(region.Position), {
                     title: region.Id,
                     alt: `Region ${region.Id}`
                 }).addTo(map)
-                // console.info(` at ${m.getLatLng()}`)
             }
         }
     }
@@ -214,7 +264,17 @@ map.on("viewreset", async() => {
                         }
                         daysPolys = []
                         regionsWithOwners.drawBorders()
-                        console.debug("Received day data")
+                    }
+                    if (idx >= 0 && dayEvents != null) {
+                        const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx}`)
+                        if (dayResponse.ok) {
+                            const dayActions = await dayActionResponse.json() as SimulationStep[]
+                            // Remove all current existing entries
+                            dayEvents.innerHTML = ""
+                            for (const action of dayActions) {
+                                dayEvents.appendChild(simulationStepToHtml(action))
+                            }
+                        }
                     }
                 }        
                 li.addEventListener("click", fetchDayData)
