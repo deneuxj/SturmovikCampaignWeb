@@ -65,6 +65,13 @@ class RegionWithOwner {
     }
 }
 
+// A silly function to print minutes, month and day numbers nicely, with at least 2 digits and a leading 0 if needed.
+function dig2(n: number): string {
+    if (n < 10) 
+        return "0" + n.toString()
+    return n.toString()
+}
+
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
 
 class BorderRenderer {
@@ -208,7 +215,10 @@ map.on("viewreset", async() => {
             dayslist.appendChild(newEntry(-1, "Latest"))
             for (let index = 0; index < dates.length; index++) {
                 const date = dates[index];
-                dayslist.appendChild(newEntry(index, `${date.Year}-${date.Month}-${date.Day} ${date.Hour}:${date.Minute}`))                
+                dayslist.appendChild(
+                    newEntry(
+                        index,
+                        `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`))                
             }
         }
     }
