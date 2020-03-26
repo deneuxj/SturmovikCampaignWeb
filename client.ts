@@ -1,4 +1,5 @@
-/// <reference path="./node_modules/@types/leaflet/index.d.ts" />
+/// <reference types="leaflet" />
+/// <reference types="bootstrap" />
 
 interface Vector2 {
     X: number
