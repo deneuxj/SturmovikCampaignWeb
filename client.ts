@@ -65,15 +65,15 @@ class RegionWithOwner {
     }
 }
 
-type DrawLineFun = (v1: Vector2, v2: Vector2, color: string) => void
+type DrawPolyLineFun = (vs: Vector2[], color: string) => void
 
 class BorderRenderer {
     regions: Map<string, RegionWithOwner>
 
-    drawLine: DrawLineFun
+    drawPolyLine: DrawPolyLineFun
 
-    constructor(drawLine: DrawLineFun, world: World, state: WarState) {
-        this.drawLine = drawLine
+    constructor(drawPolyLine: DrawPolyLineFun, world: World, state: WarState) {
+        this.drawPolyLine = drawPolyLine
         this.regions = new Map()
         for (const region of world.Regions) {
             const owner = state.RegionOwner[region.Id] ?? "Neutral"
@@ -85,12 +85,8 @@ class BorderRenderer {
     drawBorders() {
         for (const region of this.regions.values()) {
             const vertices = region.properties.Boundary
-            for (let i = 0; i < vertices.length - 1; ++i) {
-                const v1 = vertices[i]
-                const v2 = vertices[i+1]
-                const color = region.color
-                this.drawLine(v1, v2, color)
-            }
+            const color = region.color
+            this.drawPolyLine(vertices, color)
         }
     }
 }
@@ -186,14 +182,14 @@ map.on("viewreset", async() => {
                     const dayResponse = await fetch(config.campaignServerUrl + query)
                     if (dayResponse.ok && world != undefined) {
                         const dayData = await dayResponse.json() as WarState
-                        function drawLine(v1: Vector2, v2: Vector2, color: string) {
-                            const p1 = transform(v1)
-                            const p2 = transform(v2)
-                            const poly = L.polyline([p1, p2], { color: color })
+                        function drawPolyLine(vs: Vector2[], color: string) {
+                            const ps = vs.map(transform)
+                            ps.push(ps[0])
+                            const poly = L.polyline(ps, { color: color })
                             daysPolys.push(poly)
                             poly.addTo(map)
                         }
-                        const regionsWithOwners = new BorderRenderer(drawLine, world, dayData)
+                        const regionsWithOwners = new BorderRenderer(drawPolyLine, world, dayData)
                         for (const polyline of daysPolys) {
                             map.removeLayer(polyline)
                         }
