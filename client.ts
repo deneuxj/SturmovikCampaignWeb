@@ -120,7 +120,7 @@ let map = new L.Map("mapid", {
 
 let daysPolys: L.Polyline[] = []
 
-let dayslist = document.getElementById("dayslist") as HTMLUListElement
+let dayslist = document.getElementById("list-days") as HTMLUListElement
 
 var mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     {
@@ -182,6 +182,17 @@ map.on("viewreset", async() => {
     if (dayslist != null) {
         const response = await fetch(config.campaignServerUrl + "/query/dates")
         if (response.ok) {
+            function setDaysButtonLabel(label: string) {
+                const button = document.getElementById("btn-days")
+                if (button != null) {
+                    return () => {
+                        (button.firstChild as Text).textContent = label
+                    }
+                }
+                else {
+                    return () => {}
+                }
+            }
             const dates = await response.json() as DateTime[]
             function newEntry(idx: number, label: string) {
                 const li = document.createElement("li")
@@ -207,6 +218,7 @@ map.on("viewreset", async() => {
                     }
                 }        
                 li.addEventListener("click", fetchDayData)
+                li.addEventListener("click", setDaysButtonLabel(label))
                 const a = document.createElement("a")
                 const txt = new Text(label)
                 a.appendChild(txt)
