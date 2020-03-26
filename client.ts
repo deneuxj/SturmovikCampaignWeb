@@ -96,7 +96,7 @@ let config = {
 }
 
 const bounds = {
-    rheinland: new L.LatLngBounds([-90, -180], [60.27, 15.74])
+    rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74])
 }
 
 function getMapBounds(mapName: string) {
