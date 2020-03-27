@@ -80,14 +80,10 @@ interface SimulationStep {
 }
 
 function simulationStepToHtml(step : SimulationStep) {
-    const div = document.createElement("div")
-    const p = document.createElement("p")
     const small = document.createElement("small")
     const txt = document.createTextNode(step.Description)
     small.appendChild(txt)
-    p.appendChild(small)
-    div.appendChild(p)
-    return div
+    return small
 }
 
 class RegionWithOwner {
@@ -163,14 +159,12 @@ const pickDayControl = L.Control.extend({
         div.setAttribute("class", "dropdown")
         div.innerHTML =
         `
-            <button class="btn btn-default dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                Day
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                YYYY-MM-DD HH:MM
                 <span class="caret"></span>
             </button>
-            <ul class="dropdown-menu" aria-labelledby="btn-days" id="list-days">
-                <!-- <li><a href="#">Clear</a></li>
-                <li><a href="#">Initial</a></li> -->
-            </ul>`
+            <div class="dropdown-menu" aria-labelledby="btn-days" id="list-days">
+            </div>`
         return div
     },
     onRemove: function() {
@@ -293,8 +287,15 @@ map.on("viewreset", async() => {
                         const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
                         if (dayResponse.ok) {
                             const dayActions = await dayActionResponse.json() as SimulationStep[]
+                            let isSecondary = false
                             for (const action of dayActions) {
-                                dayEvents.appendChild(simulationStepToHtml(action))
+                                const content = simulationStepToHtml(action)
+                                const entry = document.createElement("li")
+                                entry.appendChild(content)
+                                const classExtra = isSecondary? " list-group-item-secondary" : ""
+                                entry.setAttribute("class", "list-group-item" + classExtra)
+                                dayEvents.appendChild(entry)
+                                isSecondary = !isSecondary
                             }
                         }
                     }
@@ -302,12 +303,13 @@ map.on("viewreset", async() => {
                 li.addEventListener("click", fetchDayData)
                 li.addEventListener("click", setDaysButtonLabel(label))
                 const a = document.createElement("a")
+                a.setAttribute("href", "#")
+                a.setAttribute("class", "dropdown-item")
                 const txt = new Text(label)
                 a.appendChild(txt)
                 li.appendChild(a)
                 return li
             }
-            dayslist.appendChild(newEntry(-1, "Latest"))
             for (let index = 0; index < dates.length; index++) {
                 const date = dates[index];
                 dayslist.appendChild(
