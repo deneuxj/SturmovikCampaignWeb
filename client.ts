@@ -112,6 +112,11 @@ function dig2(n: number): string {
     return n.toString()
 }
 
+function removeAllChildren(elmt : HTMLElement) {
+    while (elmt.lastChild != null) {
+        elmt.removeChild(elmt.lastChild)
+    }
+}
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
 
 class BorderRenderer {
@@ -179,11 +184,12 @@ let map = new L.Map("mapid", {
 const pickDay = new pickDayControl()
 pickDay.addTo(map)
 
+// The layers of the data of the day on the map
 let daysPolys: L.Polyline[] = []
 
 const dayslist = document.getElementById("list-days")
-
 const dayEvents = document.getElementById("list-events")
+const propertiesCell = document.getElementById("col-properties")
 
 const mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     {
@@ -278,9 +284,7 @@ map.on("viewreset", async() => {
                     }
                     // Remove all current existing entries
                     if (dayEvents != null) {
-                        while (dayEvents.lastChild != null) {
-                            dayEvents.removeChild(dayEvents.lastChild)
-                        }
+                        removeAllChildren(dayEvents)
                     }
                     // Populate list of events
                     if (idx >= 0 && dayEvents != null) {
@@ -294,6 +298,26 @@ map.on("viewreset", async() => {
                                 entry.appendChild(content)
                                 const classExtra = isSecondary? " list-group-item-secondary" : ""
                                 entry.setAttribute("class", "list-group-item" + classExtra)
+                                if (propertiesCell != null) {
+                                    entry.addEventListener("click", () => {
+                                        removeAllChildren(propertiesCell)
+                                        const small = document.createElement("small")
+                                        for (const cmd of action.Command) {
+                                            small.appendChild(commandToHtml(cmd))
+                                        }
+                                        if (action.Results.length > 0) {
+                                            const ul = document.createElement("ul")
+                                            ul.setAttribute("class", "list-group")
+                                            for (const result of action.Results) {
+                                                const li = resultToHtml(result)
+                                                li.setAttribute("class", "list-group-item")
+                                                ul.appendChild(li)
+                                            }
+                                            small.appendChild(ul)
+                                        }
+                                        propertiesCell.appendChild(small)
+                                    })
+                                }
                                 dayEvents.appendChild(entry)
                                 isSecondary = !isSecondary
                             }
