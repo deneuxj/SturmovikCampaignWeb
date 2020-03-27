@@ -157,9 +157,33 @@ function getMapBounds(mapName: string) {
     }
 }
 
+const pickDayControl = L.Control.extend({
+    onAdd: function(map: L.Map) {
+        const div = document.createElement("div")
+        div.setAttribute("class", "dropdown")
+        div.innerHTML =
+        `
+            <button class="btn btn-default dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                Day
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="btn-days" id="list-days">
+                <!-- <li><a href="#">Clear</a></li>
+                <li><a href="#">Initial</a></li> -->
+            </ul>`
+        return div
+    },
+    onRemove: function() {
+
+    }
+})
+
 let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
+
+const pickDay = new pickDayControl()
+pickDay.addTo(map)
 
 let daysPolys: L.Polyline[] = []
 
