@@ -82,19 +82,11 @@ interface SimulationStep {
 function simulationStepToHtml(step : SimulationStep) {
     const div = document.createElement("div")
     const p = document.createElement("p")
+    const small = document.createElement("small")
     const txt = document.createTextNode(step.Description)
-    p.appendChild(txt)
+    small.appendChild(txt)
+    p.appendChild(small)
     div.appendChild(p)
-    for (const cmd of step.Command) {
-        div.appendChild(commandToHtml(cmd))
-    }
-    if (step.Results.length > 0) {
-        const ul = document.createElement("ul")
-        for (const result of step.Results) {
-            ul.appendChild(resultToHtml(result))
-        }
-        div.appendChild(ul)
-    }
     return div
 }
 
@@ -249,6 +241,7 @@ map.on("viewreset", async() => {
                 async function fetchDayData(this: HTMLElement): Promise<any> {
                     const query = (idx != -1) ? `/query/past/${idx}` : "/query/current"
                     const dayResponse = await fetch(config.campaignServerUrl + query)
+                    // Draw region borders
                     if (dayResponse.ok && world != undefined) {
                         const dayData = await dayResponse.json() as WarState
                         function drawPolyLine(vs: Vector2[], color: string) {
@@ -265,12 +258,17 @@ map.on("viewreset", async() => {
                         daysPolys = []
                         regionsWithOwners.drawBorders()
                     }
+                    // Remove all current existing entries
+                    if (dayEvents != null) {
+                        while (dayEvents.lastChild != null) {
+                            dayEvents.removeChild(dayEvents.lastChild)
+                        }
+                    }
+                    // Populate list of events
                     if (idx >= 0 && dayEvents != null) {
-                        const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx}`)
+                        const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
                         if (dayResponse.ok) {
                             const dayActions = await dayActionResponse.json() as SimulationStep[]
-                            // Remove all current existing entries
-                            dayEvents.innerHTML = ""
                             for (const action of dayActions) {
                                 dayEvents.appendChild(simulationStepToHtml(action))
                             }
