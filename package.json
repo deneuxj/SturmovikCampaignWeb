@@ -18,6 +18,7 @@
   "homepage": "https://github.com/deneuxj/SturmovikCampaignWeb#readme",
   "dependencies": {
     "@types/bootstrap": "^4.3.1",
-    "@types/leaflet": "^1.5.12"
+    "@types/leaflet": "^1.5.12",
+    "@types/vis": "^4.21.19"
   }
 }

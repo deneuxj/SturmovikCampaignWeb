@@ -6,6 +6,15 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script type="text/javascript" src="//unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script> 
+    <link href="//unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        #visualization {
+        width: 800px;
+        height: 100px;
+        border: 1px solid lightgray;
+        }
+    </style> 
 </head>
 
 <body>
@@ -23,7 +32,7 @@
         </div>
         <div class="row">
             <div class="col" id="col-graph">
-
+                <div id="visualization"></div>
             </div>
             <div class="col" id="col-properties">
 

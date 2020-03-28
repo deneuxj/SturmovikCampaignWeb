@@ -1,7 +1,12 @@
 /// <reference types="leaflet" />
 /// <reference types="bootstrap" />
+/// <reference types="vis" />
+
+type Dict<T> = Partial<Record<string, T>>
 
 // -------- Types: SturmovikCampaign's WebController
+type Coalition = "Allies" | "Axis"
+
 interface Vector2 {
     X: number
     Y: number
@@ -10,13 +15,18 @@ interface Vector2 {
 interface Airfield {
     Id: string
     Position: Vector2
+    Region: string
 }
 
 interface Region {
     Id: string
     Boundary: Vector2[]
     Position: Vector2
-    InitialOwner: string
+    InitialOwner: Coalition | null
+}
+ 
+interface PlaneModel {
+    Name: string
 }
 
 interface World {
@@ -26,6 +36,7 @@ interface World {
     MapNorthEast: Vector2
     Regions: Region[]
     Airfields: Airfield[]
+    PlaneSet: PlaneModel[]
 }
 
 interface DateTime {
@@ -36,19 +47,24 @@ interface DateTime {
     Minute: number
 }
 
+function dateToStr(date: DateTime): string {
+    return `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`
+}
+
 interface GroundForces {
     Region: string
-    Coalition: string
+    Coalition: Coalition
     Forces: number
 }
 
 interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
-    RegionOwner: Record<string, string>
+    RegionOwner: Dict<Coalition>
+    Planes: Dict<Dict<number>>
 }
 
-type ValueType = number | string | object | Record<string, number | string | object>
+type ValueType = number | string | object | Dict<number | string | object>
 
 interface Command {
     Verb: string
@@ -107,7 +123,7 @@ class RegionWithOwner {
     }
 }
 
-// -------- Util functions
+// -------- Utility functions
 
 // A silly function to print minutes, month and day numbers nicely, with 2 digits and a leading 0 if needed.
 function dig2(n: number): string {
@@ -120,6 +136,41 @@ function dig2(n: number): string {
 function removeAllChildren(elmt : HTMLElement) {
     while (elmt.lastChild != null) {
         elmt.removeChild(elmt.lastChild)
+    }
+}
+
+// Get the keys of a Dict
+function keysOf<T>(dict : Dict<T> | null | undefined) {
+    return Object.getOwnPropertyNames(dict)
+}
+
+// Get the values in a Dict
+function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
+    if (dict == null || dict == undefined)
+        return []
+    let ret: T[] = []
+    const values = keysOf(dict).map(k => dict[k])
+    for(const v of values) {
+        if (v != undefined) ret.push(v)
+    }
+    return ret
+}
+
+interface ValueRange {
+    min: number
+    max: number
+}
+
+function widenRange(range: ValueRange, x: number) {
+    if (range.min > x) range.min = x
+    if (range.max < x) range.max = x
+}
+
+function enlarged(range: ValueRange) {
+    const w = range.max - range.min
+    return {
+        min: range.min - 0.05 * w,
+        max: range.max + 0.05 * w
     }
 }
 
@@ -222,47 +273,40 @@ const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
     })
 mapTiles.addTo(map)
 
-// World data, set when the view is reset
-let world : World | undefined = undefined
-
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
 // Get world data: Static information about regions, airfields...
 async function getWorldData() {
     const response = await fetch(config.campaignServerUrl + "/query/world")
-    if (response.ok) {
-        world = await response.json()
-        if (world != undefined) {
-            const mapName : string = world.Map
-            const bounds = getMapBounds(mapName)
-            if (bounds != undefined) {
-                const mapSW = world.MapSouthWest
-                const mapNE = world.MapNorthEast
-                const mapWidth = mapNE.Y - mapSW.Y
-                const mapHeight = mapNE.X - mapSW.X
-                const leafWidth = bounds.getEast() - bounds.getWest()
-                const leafHeight = bounds.getNorth() - bounds.getSouth()
-                transform = (v : Vector2) =>
-                    new L.LatLng(
-                        bounds.getSouth() + leafHeight * (v.X - mapSW.X) / mapHeight,
-                        bounds.getWest() + leafWidth * (v.Y - mapSW.Y) / mapWidth);
-            }
-            else {
-                console.error(`Bounds for map '${mapName}' are unknown`)
-            }
-            for (let i = 0; i < world.Regions.length; i++) {
-                const region = world.Regions[i];
-                let m = L.marker(transform(region.Position), {
-                    title: region.Id,
-                    alt: `Region ${region.Id}`
-                }).addTo(map)
-            }
-        }
+    if (!response.ok)
+        return null
+    const world : World = await response.json()
+    const mapName = world.Map
+    const bounds = getMapBounds(mapName)
+    if (bounds != undefined) {
+        const mapSW = world.MapSouthWest
+        const mapNE = world.MapNorthEast
+        const mapWidth = mapNE.Y - mapSW.Y
+        const mapHeight = mapNE.X - mapSW.X
+        const leafWidth = bounds.getEast() - bounds.getWest()
+        const leafHeight = bounds.getNorth() - bounds.getSouth()
+        transform = (v : Vector2) =>
+            new L.LatLng(
+                bounds.getSouth() + leafHeight * (v.X - mapSW.X) / mapHeight,
+                bounds.getWest() + leafWidth * (v.Y - mapSW.Y) / mapWidth);
     }
     else {
-        console.info("viewreset: Response status was not OK")
+        console.error(`Bounds for map '${mapName}' are unknown`)
     }
+    for (let i = 0; i < world.Regions.length; i++) {
+        const region = world.Regions[i];
+        let m = L.marker(transform(region.Position), {
+            title: region.Id,
+            alt: `Region ${region.Id}`
+        }).addTo(map)
+    }
+    return world
 }
 
 // Set the label of the date picker button
@@ -279,12 +323,12 @@ function setDaysButtonLabel(label: string) {
 }
 
 // Get the state of the world on a given date identified by its index in the list of dates, and update the UI
-function fetchDayData(idx: number) {
+function fetchDayData(world: World, idx: number) {
     return async () => {
         const query = `/query/past/${idx}`
         const dayResponse = await fetch(config.campaignServerUrl + query)
         // Draw region borders
-        if (dayResponse.ok && world != undefined) {
+        if (dayResponse.ok) {
             const dayData = await dayResponse.json() as WarState
             function drawPolyLine(vs: Vector2[], color: string) {
                 const ps = vs.map(transform)
@@ -342,9 +386,9 @@ function fetchDayData(idx: number) {
 }        
 
 // Create a new entry in the date picker dropdown
-function newEntry(idx: number, label: string) {
+function newEntry(world: World, idx: number, label: string) {
     const li = document.createElement("li")
-    li.addEventListener("click", fetchDayData(idx))
+    li.addEventListener("click", fetchDayData(world, idx))
     li.addEventListener("click", setDaysButtonLabel(label))
     const a = document.createElement("a")
     a.setAttribute("href", "#")
@@ -356,7 +400,7 @@ function newEntry(idx: number, label: string) {
 }
 
 // Get the list of dates in the campaign, and set UI event handlers
-async function getDays() {
+async function getDays(world: World) {
     if (dayslist == null)
         return null
     const response = await fetch(config.campaignServerUrl + "/query/dates")
@@ -367,20 +411,122 @@ async function getDays() {
     
     for (let index = 0; index < dates.length; index++) {
         const date = dates[index];
-        dayslist.appendChild(
-            newEntry(
-                index,
-                `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`))                
+        dayslist.appendChild(newEntry(world, index, dateToStr(date)))                
     }
     return dates
+}
+
+async function buildGraph(world: World, dates: DateTime[]) {
+    if (graphDiv == null)
+        return
+    let states = new Array<WarState>()
+    let items: any[] = []
+    let groundForcesRange = { min: 0, max: 0 }
+    let planesRange = { min: 0, max: 0 }
+    for (let i = 0; i < dates.length; ++i) {
+        const date = dateToStr(dates[i])
+        const response = await fetch(config.campaignServerUrl + `/query/past/${i}`)
+        if (response.ok) {
+            const data: WarState = await response.json()
+            states.push(data)
+            function totalGroundForces(coalition: Coalition) {
+                const total = data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces).reduce((x, y) => x + y, 0)
+                widenRange(groundForcesRange, total)
+                return total
+            }
+            function regionsOf(coalition: Coalition) {
+                return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
+            }
+            function airfieldsOf(coalition: Coalition) {
+                return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
+            }
+            function planesInCoalition(coalition: Coalition) {
+                const planes = airfieldsOf(coalition).flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0).reduce((x, y) => x + y, 0)
+                widenRange(planesRange, planes)
+                return planes
+            }
+            items.push({
+                x: date,
+                y: totalGroundForces("Axis"),
+                group: "ground-forces-axis"
+            })
+            items.push({
+                x: date,
+                y: totalGroundForces("Allies"),
+                group: "ground-forces-allies"
+            })
+            items.push({
+                x: date,
+                y: planesInCoalition("Axis"),
+                group: "air-forces-axis"
+            })
+            items.push({
+                x: date,
+                y: planesInCoalition("Allies"),
+                group: "air-forces-allies"
+            })
+        }
+    }
+    const dataset = new vis.DataSet(items)
+    const groups = new vis.DataSet()
+    groups.add({
+        id: "ground-forces-axis",
+        content: "Ground forces (Axis)",
+        options: {
+            yAxisOrientation: "right"
+        }
+    })
+    groups.add({
+        id: "ground-forces-allies",
+        content: "Ground forces (Allies)",
+        visible: true,
+        options: {
+            yAxisOrientation: "right"
+        }
+    })
+    groups.add({
+        id: "air-forces-axis",
+        content: "Planes (Axis)",
+        options: {
+            yAxisOrientation: "left"
+        }
+    })
+    groups.add({
+        id: "air-forces-allies",
+        content: "Planes (Allies)",
+        options: {
+            yAxisOrientation: "left"
+        }
+    })
+    console.debug(groundForcesRange)
+    const graph = new vis.Graph2d(graphDiv, dataset, groups, {
+        legend: true,
+        dataAxis: {
+            alignZeros: true,
+            left: {
+                range: enlarged(planesRange)
+            },
+            right: {
+                range: enlarged(groundForcesRange)
+            }
+        }
+    })
+    return graph
 }
 
 // Load the world and setup the UI when the map is ready
 map.on("load", async() => {
     console.info("viewreset event called")
 
-    await getWorldData()
-    const dates = await getDays()
+    const world = await getWorldData()
+    if (world == null)
+        return
+    const dates = await getDays(world)
+    if (dates != null) {
+        const graph = await buildGraph(world, dates)
+        graph?.fit()
+    }
+
 })
 
 // Debug: show leaflet coordinates when clicking on the map
