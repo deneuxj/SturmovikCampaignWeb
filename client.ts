@@ -1,6 +1,7 @@
 /// <reference types="leaflet" />
 /// <reference types="bootstrap" />
 
+// -------- Types: SturmovikCampaign's WebController
 interface Vector2 {
     X: number
     Y: number
@@ -86,6 +87,7 @@ function simulationStepToHtml(step : SimulationStep) {
     return small
 }
 
+// Annotate a region with its current owner
 class RegionWithOwner {
     properties: Region
     owner: string
@@ -105,6 +107,8 @@ class RegionWithOwner {
     }
 }
 
+// -------- Util functions
+
 // A silly function to print minutes, month and day numbers nicely, with 2 digits and a leading 0 if needed.
 function dig2(n: number): string {
     if (n < 10) 
@@ -112,13 +116,19 @@ function dig2(n: number): string {
     return n.toString()
 }
 
+// Remove all children from an HTML element
 function removeAllChildren(elmt : HTMLElement) {
     while (elmt.lastChild != null) {
         elmt.removeChild(elmt.lastChild)
     }
 }
+
+// Signature of functions to draw polylines using the game's coordinate system
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
 
+// -------- Implementation
+
+// Render regions and their borders, with colours according to owner
 class BorderRenderer {
     regions: Map<string, RegionWithOwner>
 
@@ -143,14 +153,18 @@ class BorderRenderer {
     }
 }
 
+// Site-dependent configuration
 const config = {
     campaignServerUrl: "http://127.0.0.1:8080",
+    tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png"
 }
 
+// Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
     rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74])
 }
 
+// Get the bounds (leaflet's coordinate system) of a specific map and season
 function getMapBounds(mapName: string) {
     switch(mapName) {
         case "rheinland-summer": return bounds.rheinland;
@@ -158,6 +172,7 @@ function getMapBounds(mapName: string) {
     }
 }
 
+// A constructor of a leaflet control to pick the day/date of the campaign step to display
 const pickDayControl = L.Control.extend({
     onAdd: function(map: L.Map) {
         const div = document.createElement("div")
@@ -177,22 +192,26 @@ const pickDayControl = L.Control.extend({
     }
 })
 
+// The leaflet map
 let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
 
+// The control to pick the day/date to display
 const pickDay = new pickDayControl()
 pickDay.addTo(map)
 
 // The layers of the data of the day on the map
 let daysPolys: L.Polyline[] = []
 
+// Various HTML elements to hook on
 const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
 const propertiesCell = document.getElementById("col-properties")
 const graphDiv = document.getElementById("visualization")
 
-const mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
+// The tile of the map, using il2missionplanner
+const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
     {
         tms: true,
         noWrap: true,
@@ -209,6 +228,7 @@ let world : World | undefined = undefined
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
+// Get world data: Static information about regions, airfields...
 async function getWorldData() {
     const response = await fetch(config.campaignServerUrl + "/query/world")
     if (response.ok) {
@@ -245,6 +265,7 @@ async function getWorldData() {
     }
 }
 
+// Set the label of the date picker button
 function setDaysButtonLabel(label: string) {
     const button = document.getElementById("btn-days")
     if (button != null) {
@@ -257,6 +278,7 @@ function setDaysButtonLabel(label: string) {
     }
 }
 
+// Get the state of the world on a given date identified by its index in the list of dates, and update the UI
 function fetchDayData(idx: number) {
     return async () => {
         const query = `/query/past/${idx}`
@@ -319,6 +341,7 @@ function fetchDayData(idx: number) {
     }
 }        
 
+// Create a new entry in the date picker dropdown
 function newEntry(idx: number, label: string) {
     const li = document.createElement("li")
     li.addEventListener("click", fetchDayData(idx))
@@ -332,6 +355,7 @@ function newEntry(idx: number, label: string) {
     return li
 }
 
+// Get the list of dates in the campaign, and set UI event handlers
 async function getDays() {
     if (dayslist == null)
         return null
@@ -351,13 +375,15 @@ async function getDays() {
     return dates
 }
 
-map.on("viewreset", async() => {
+// Load the world and setup the UI when the map is ready
+map.on("load", async() => {
     console.info("viewreset event called")
 
     await getWorldData()
     const dates = await getDays()
 })
 
+// Debug: show leaflet coordinates when clicking on the map
 map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
 })
