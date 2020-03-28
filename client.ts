@@ -190,6 +190,7 @@ let daysPolys: L.Polyline[] = []
 const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
 const propertiesCell = document.getElementById("col-properties")
+const graphDiv = document.getElementById("visualization")
 
 const mapTiles = new L.TileLayer("https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     {
@@ -208,8 +209,7 @@ let world : World | undefined = undefined
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
-map.on("viewreset", async() => {
-    console.info("viewreset event called")
+async function getWorldData() {
     const response = await fetch(config.campaignServerUrl + "/query/world")
     if (response.ok) {
         world = await response.json()
@@ -243,109 +243,119 @@ map.on("viewreset", async() => {
     else {
         console.info("viewreset: Response status was not OK")
     }
+}
 
-    // Get the list of days
-    if (dayslist != null) {
-        const response = await fetch(config.campaignServerUrl + "/query/dates")
-        if (response.ok) {
-            function setDaysButtonLabel(label: string) {
-                const button = document.getElementById("btn-days")
-                if (button != null) {
-                    return () => {
-                        (button.firstChild as Text).textContent = label
-                    }
-                }
-                else {
-                    return () => {}
-                }
-            }
-            const dates = await response.json() as DateTime[]
-            function newEntry(idx: number, label: string) {
-                const li = document.createElement("li")
-                async function fetchDayData(this: HTMLElement): Promise<any> {
-                    const query = (idx != -1) ? `/query/past/${idx}` : "/query/current"
-                    const dayResponse = await fetch(config.campaignServerUrl + query)
-                    // Draw region borders
-                    if (dayResponse.ok && world != undefined) {
-                        const dayData = await dayResponse.json() as WarState
-                        function drawPolyLine(vs: Vector2[], color: string) {
-                            const ps = vs.map(transform)
-                            ps.push(ps[0])
-                            const poly = L.polyline(ps, { color: color })
-                            daysPolys.push(poly)
-                            poly.addTo(map)
-                        }
-                        const regionsWithOwners = new BorderRenderer(drawPolyLine, world, dayData)
-                        for (const polyline of daysPolys) {
-                            map.removeLayer(polyline)
-                        }
-                        daysPolys = []
-                        regionsWithOwners.drawBorders()
-                    }
-                    // Remove all current existing entries
-                    if (dayEvents != null) {
-                        removeAllChildren(dayEvents)
-                    }
-                    // Populate list of events
-                    if (idx >= 0 && dayEvents != null) {
-                        const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
-                        if (dayResponse.ok) {
-                            const dayActions = await dayActionResponse.json() as SimulationStep[]
-                            let isSecondary = false
-                            for (const action of dayActions) {
-                                const content = simulationStepToHtml(action)
-                                const entry = document.createElement("li")
-                                entry.appendChild(content)
-                                const classExtra = isSecondary? " list-group-item-secondary" : ""
-                                entry.setAttribute("class", "list-group-item" + classExtra)
-                                if (propertiesCell != null) {
-                                    entry.addEventListener("click", () => {
-                                        removeAllChildren(propertiesCell)
-                                        const small = document.createElement("small")
-                                        for (const cmd of action.Command) {
-                                            small.appendChild(commandToHtml(cmd))
-                                        }
-                                        if (action.Results.length > 0) {
-                                            const ul = document.createElement("ul")
-                                            ul.setAttribute("class", "list-group")
-                                            for (const result of action.Results) {
-                                                const li = resultToHtml(result)
-                                                li.setAttribute("class", "list-group-item")
-                                                ul.appendChild(li)
-                                            }
-                                            small.appendChild(ul)
-                                        }
-                                        propertiesCell.appendChild(small)
-                                    })
-                                }
-                                dayEvents.appendChild(entry)
-                                isSecondary = !isSecondary
-                            }
-                        }
-                    }
-                }        
-                li.addEventListener("click", fetchDayData)
-                li.addEventListener("click", setDaysButtonLabel(label))
-                const a = document.createElement("a")
-                a.setAttribute("href", "#")
-                a.setAttribute("class", "dropdown-item")
-                const txt = new Text(label)
-                a.appendChild(txt)
-                li.appendChild(a)
-                return li
-            }
-            for (let index = 0; index < dates.length; index++) {
-                const date = dates[index];
-                dayslist.appendChild(
-                    newEntry(
-                        index,
-                        `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`))                
-            }
+function setDaysButtonLabel(label: string) {
+    const button = document.getElementById("btn-days")
+    if (button != null) {
+        return () => {
+            (button.firstChild as Text).textContent = label
         }
     }
     else {
-        console.error("Could not find UL element 'dayslist'")
+        return () => {}
     }
+}
+
+function fetchDayData(idx: number) {
+    return async () => {
+        const query = `/query/past/${idx}`
+        const dayResponse = await fetch(config.campaignServerUrl + query)
+        // Draw region borders
+        if (dayResponse.ok && world != undefined) {
+            const dayData = await dayResponse.json() as WarState
+            function drawPolyLine(vs: Vector2[], color: string) {
+                const ps = vs.map(transform)
+                ps.push(ps[0])
+                const poly = L.polyline(ps, { color: color })
+                daysPolys.push(poly)
+                poly.addTo(map)
+            }
+            const regionsWithOwners = new BorderRenderer(drawPolyLine, world, dayData)
+            for (const polyline of daysPolys) {
+                map.removeLayer(polyline)
+            }
+            daysPolys = []
+            regionsWithOwners.drawBorders()
+        }
+        // Populate list of events
+        if (dayEvents != null) {
+            removeAllChildren(dayEvents)
+            const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
+            if (dayResponse.ok) {
+                const dayActions = await dayActionResponse.json() as SimulationStep[]
+                let isSecondary = false
+                for (const action of dayActions) {
+                    const content = simulationStepToHtml(action)
+                    const entry = document.createElement("li")
+                    entry.appendChild(content)
+                    const classExtra = isSecondary? " list-group-item-secondary" : ""
+                    entry.setAttribute("class", "list-group-item" + classExtra)
+                    if (propertiesCell != null) {
+                        entry.addEventListener("click", () => {
+                            removeAllChildren(propertiesCell)
+                            const small = document.createElement("small")
+                            for (const cmd of action.Command) {
+                                small.appendChild(commandToHtml(cmd))
+                            }
+                            if (action.Results.length > 0) {
+                                const ul = document.createElement("ul")
+                                ul.setAttribute("class", "list-group")
+                                for (const result of action.Results) {
+                                    const li = resultToHtml(result)
+                                    li.setAttribute("class", "list-group-item")
+                                    ul.appendChild(li)
+                                }
+                                small.appendChild(ul)
+                            }
+                            propertiesCell.appendChild(small)
+                        })
+                    }
+                    dayEvents.appendChild(entry)
+                    isSecondary = !isSecondary
+                }
+            }
+        }
+    }
+}        
+
+function newEntry(idx: number, label: string) {
+    const li = document.createElement("li")
+    li.addEventListener("click", fetchDayData(idx))
+    li.addEventListener("click", setDaysButtonLabel(label))
+    const a = document.createElement("a")
+    a.setAttribute("href", "#")
+    a.setAttribute("class", "dropdown-item")
+    const txt = new Text(label)
+    a.appendChild(txt)
+    li.appendChild(a)
+    return li
+}
+
+async function getDays() {
+    if (dayslist == null)
+        return null
+    const response = await fetch(config.campaignServerUrl + "/query/dates")
+    if (!response.ok)
+        return null
+
+    const dates = await response.json() as DateTime[]
+    
+    for (let index = 0; index < dates.length; index++) {
+        const date = dates[index];
+        dayslist.appendChild(
+            newEntry(
+                index,
+                `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`))                
+    }
+    return dates
+}
+
+map.on("viewreset", async() => {
+    console.info("viewreset event called")
+
+    await getWorldData()
+    const dates = await getDays()
 })
 
 map.on("click", async(args: L.LeafletMouseEvent) => {
