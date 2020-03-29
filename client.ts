@@ -1,6 +1,6 @@
 /// <reference types="leaflet" />
 /// <reference types="bootstrap" />
-/// <reference types="vis" />
+/// <reference types="plotly.js" />
 
 type Dict<T> = Partial<Record<string, T>>
 
@@ -419,8 +419,12 @@ async function getDays(world: World) {
 async function buildGraph(world: World, dates: DateTime[]) {
     if (graphDiv == null)
         return
-    let states = new Array<WarState>()
-    let items: any[] = []
+    const states = new Array<WarState>()
+    const axisGroundForces: number[] = []
+    const alliesGroundForces: number[] = []
+    const axisPlanes: number[] = []
+    const alliesPlanes: number[] = []
+    const timeline: number[] = []
     let groundForcesRange = { min: 0, max: 0 }
     let planesRange = { min: 0, max: 0 }
     for (let i = 0; i < dates.length; ++i) {
@@ -445,72 +449,32 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 widenRange(planesRange, planes)
                 return planes
             }
-            items.push({
-                x: date,
-                y: totalGroundForces("Axis"),
-                group: "ground-forces-axis"
-            })
-            items.push({
-                x: date,
-                y: totalGroundForces("Allies"),
-                group: "ground-forces-allies"
-            })
-            items.push({
-                x: date,
-                y: planesInCoalition("Axis"),
-                group: "air-forces-axis"
-            })
-            items.push({
-                x: date,
-                y: planesInCoalition("Allies"),
-                group: "air-forces-allies"
-            })
+            axisGroundForces.push(totalGroundForces("Axis"))
+            alliesGroundForces.push(totalGroundForces("Allies"))
+            axisPlanes.push(planesInCoalition("Axis"))
+            alliesPlanes.push(planesInCoalition("Allies"))
+            timeline.push(i)
         }
     }
-    const dataset = new vis.DataSet(items)
-    const groups = new vis.DataSet()
-    groups.add({
-        id: "ground-forces-axis",
-        content: "Ground forces (Axis)",
-        options: {
-            yAxisOrientation: "right"
+    const plotData = [
+        {
+            x: timeline,
+            y: axisGroundForces
+        },
+        {
+            x: timeline,
+            y: alliesGroundForces
+        },
+        {
+            x: timeline,
+            y: axisPlanes
+        },
+        {
+            x: timeline,
+            y: alliesPlanes
         }
-    })
-    groups.add({
-        id: "ground-forces-allies",
-        content: "Ground forces (Allies)",
-        visible: true,
-        options: {
-            yAxisOrientation: "right"
-        }
-    })
-    groups.add({
-        id: "air-forces-axis",
-        content: "Planes (Axis)",
-        options: {
-            yAxisOrientation: "left"
-        }
-    })
-    groups.add({
-        id: "air-forces-allies",
-        content: "Planes (Allies)",
-        options: {
-            yAxisOrientation: "left"
-        }
-    })
-    console.debug(groundForcesRange)
-    const graph = new vis.Graph2d(graphDiv, dataset, groups, {
-        legend: true,
-        dataAxis: {
-            alignZeros: true,
-            left: {
-                range: enlarged(planesRange)
-            },
-            right: {
-                range: enlarged(groundForcesRange)
-            }
-        }
-    })
+    ]
+    const graph = Plotly.newPlot(graphDiv, plotData)
     return graph
 }
 
@@ -523,8 +487,7 @@ map.on("load", async() => {
         return
     const dates = await getDays(world)
     if (dates != null) {
-        const graph = await buildGraph(world, dates)
-        graph?.fit()
+        await buildGraph(world, dates)
     }
 
 })
