@@ -424,7 +424,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
     const alliesGroundForces: number[] = []
     const axisPlanes: number[] = []
     const alliesPlanes: number[] = []
-    const timeline: number[] = []
+    const timeline: string[] = []
     let groundForcesRange = { min: 0, max: 0 }
     let planesRange = { min: 0, max: 0 }
     for (let i = 0; i < dates.length; ++i) {
@@ -453,25 +453,29 @@ async function buildGraph(world: World, dates: DateTime[]) {
             alliesGroundForces.push(totalGroundForces("Allies"))
             axisPlanes.push(planesInCoalition("Axis"))
             alliesPlanes.push(planesInCoalition("Allies"))
-            timeline.push(i)
+            timeline.push(date)
         }
     }
     const plotData = [
         {
             x: timeline,
-            y: axisGroundForces
+            y: axisGroundForces,
+            name: "ground forces (Axis)"
         },
         {
             x: timeline,
-            y: alliesGroundForces
+            y: alliesGroundForces,
+            name: "ground forces (Allies)"
         },
         {
             x: timeline,
-            y: axisPlanes
+            y: axisPlanes,
+            name: "planes (Axis)"
         },
         {
             x: timeline,
-            y: alliesPlanes
+            y: alliesPlanes,
+            name: "planes (Allies)"
         }
     ]
     const graph = Plotly.newPlot(graphDiv, plotData)
