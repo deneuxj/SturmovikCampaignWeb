@@ -540,6 +540,9 @@ map.on("load", async() => {
         await buildGraph(world, dates)
     }
 
+    const mapBounds = getMapBounds(world.Map)
+    if (mapBounds != undefined)
+        map.fitBounds(mapBounds)
 })
 
 // Debug: show leaflet coordinates when clicking on the map
