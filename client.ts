@@ -61,6 +61,7 @@ interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
     RegionOwner: Dict<Coalition>
+    SupplyStatus: Dict<number>
     Planes: Dict<Dict<number>>
 }
 
@@ -420,6 +421,10 @@ async function buildGraph(world: World, dates: DateTime[]) {
     if (graphDiv == null)
         return
     const states = new Array<WarState>()
+    const axisNumRegions: number[] = []
+    const alliesNumRegions: number[] = []
+    const axisSupplies: number[] = []
+    const alliesSupplies: number[] = []
     const axisGroundForces: number[] = []
     const alliesGroundForces: number[] = []
     const axisPlanes: number[] = []
@@ -441,6 +446,9 @@ async function buildGraph(world: World, dates: DateTime[]) {
             function regionsOf(coalition: Coalition) {
                 return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
             }
+            function suppliesIn(regions: Region[]) {
+                return regions.map(reg => data.SupplyStatus[reg.Id] ?? 0).reduce((x, y) => x + y, 0)
+            }
             function airfieldsOf(coalition: Coalition) {
                 return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
             }
@@ -449,6 +457,12 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 widenRange(planesRange, planes)
                 return planes
             }
+            const axisRegions = regionsOf("Axis")
+            const alliesRegions = regionsOf("Allies")
+            axisNumRegions.push(axisRegions.length)
+            alliesNumRegions.push(alliesRegions.length)
+            axisSupplies.push(suppliesIn(axisRegions))
+            alliesSupplies.push(suppliesIn(alliesRegions))
             axisGroundForces.push(totalGroundForces("Axis"))
             alliesGroundForces.push(totalGroundForces("Allies"))
             axisPlanes.push(planesInCoalition("Axis"))
@@ -456,16 +470,39 @@ async function buildGraph(world: World, dates: DateTime[]) {
             timeline.push(date)
         }
     }
-    const plotData = [
+    function mkScale(k: number) {
+        return (x: number) => k * x
+    }
+    const plotData : Partial<Plotly.PlotData>[] = [
         {
             x: timeline,
-            y: axisGroundForces,
-            name: "ground forces (Axis)"
+            y: axisNumRegions.map(mkScale(100)),
+            name: "regions (Axis) x100"
         },
         {
             x: timeline,
-            y: alliesGroundForces,
-            name: "ground forces (Allies)"
+            y: alliesNumRegions.map(mkScale(100)),
+            name: "regions (Allies) x100"
+        },
+        {
+            x: timeline,
+            y: axisSupplies.map(mkScale(1e-3)),
+            name: "supplies (Axis) /1000"
+        },
+        {
+            x: timeline,
+            y: alliesSupplies.map(mkScale(1e-3)),
+            name: "supplies (Allies) /1000"
+        },
+        {
+            x: timeline,
+            y: axisGroundForces.map(mkScale(0.1)),
+            name: "ground forces (Axis) /10"
+        },
+        {
+            x: timeline,
+            y: alliesGroundForces.map(mkScale(0.1)),
+            name: "ground forces (Allies) /10"
         },
         {
             x: timeline,
@@ -476,9 +513,18 @@ async function buildGraph(world: World, dates: DateTime[]) {
             x: timeline,
             y: alliesPlanes,
             name: "planes (Allies)"
+        },
+        {
+            x: [timeline[0], timeline[timeline.length - 1]],
+            y: [0, 0],
+            name: "0 baseline",
+            mode: "lines",
+            line: {
+                color: "black"
+            }
         }
     ]
-    const graph = Plotly.newPlot(graphDiv, plotData)
+    const graph = Plotly.newPlot(graphDiv, plotData, { margin: { t: 0 } })
     return graph
 }
 
