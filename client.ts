@@ -261,6 +261,8 @@ const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
 const propertiesCell = document.getElementById("col-properties")
 const graphDiv = document.getElementById("visualization")
+const btnRun = document.getElementById("btn-run")
+const btnStep = document.getElementById("btn-step")
 
 // The tile of the map, using il2missionplanner
 const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
@@ -548,6 +550,11 @@ map.on("load", async() => {
 // Debug: show leaflet coordinates when clicking on the map
 map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
+})
+
+btnStep?.addEventListener("click", async () => {
+    const response = await fetch(config.campaignServerUrl + "/control/advance", { method: "PUT" })
+    console.debug(response)
 })
 
 map.fitWorld()
