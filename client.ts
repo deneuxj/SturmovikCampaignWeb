@@ -12,10 +12,28 @@ interface Vector2 {
     Y: number
 }
 
+interface OrientedPosition {
+    Position: Vector2
+    Altitude: number
+    Rotation: number
+}
+
+interface BuildingProperties {
+    Id: number
+    Model: string
+    Capacity: number
+}
+
+interface BuildingInstance {
+    Position: OrientedPosition
+    PropertiesId: number
+}
+
 interface Airfield {
     Id: string
     Position: Vector2
     Region: string
+    Buildings: BuildingInstance[]
 }
 
 interface Region {
@@ -23,6 +41,7 @@ interface Region {
     Boundary: Vector2[]
     Position: Vector2
     InitialOwner: Coalition | null
+    Buildings: BuildingInstance[]
 }
  
 interface PlaneModel {
@@ -37,6 +56,7 @@ interface World {
     Regions: Region[]
     Airfields: Airfield[]
     PlaneSet: PlaneModel[]
+    BuildingProperties: BuildingProperties[]
 }
 
 interface DateTime {
@@ -57,12 +77,19 @@ interface GroundForces {
     Forces: number
 }
 
+interface BuildingStatus {
+    Position: OrientedPosition
+    HealthLevel: number
+    FunctionalityLevel: number
+}
+
 interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
     RegionOwner: Dict<Coalition>
     SupplyStatus: Dict<number>
     Planes: Dict<Dict<number>>
+    BuildingHealth: BuildingStatus[]
 }
 
 type ValueType = number | string | object | Dict<number | string | object>
@@ -155,6 +182,10 @@ function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
         if (v != undefined) ret.push(v)
     }
     return ret
+}
+
+function sum(xs: number[]) {
+    return xs.reduce((x, y) => x + y, 0)
 }
 
 interface ValueRange {
@@ -425,6 +456,10 @@ async function buildGraph(world: World, dates: DateTime[]) {
     const states = new Array<WarState>()
     const axisNumRegions: number[] = []
     const alliesNumRegions: number[] = []
+    const axisRegionCapacity: number[] = []
+    const alliesRegionCapacity: number[] = []
+    const axisAirfieldCapacity: number[] = []
+    const alliesAirfieldCapacity: number[] = []
     const axisSupplies: number[] = []
     const alliesSupplies: number[] = []
     const axisGroundForces: number[] = []
@@ -441,7 +476,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
             const data: WarState = await response.json()
             states.push(data)
             function totalGroundForces(coalition: Coalition) {
-                const total = data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces).reduce((x, y) => x + y, 0)
+                const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
                 widenRange(groundForcesRange, total)
                 return total
             }
@@ -449,26 +484,54 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
             }
             function suppliesIn(regions: Region[]) {
-                return regions.map(reg => data.SupplyStatus[reg.Id] ?? 0).reduce((x, y) => x + y, 0)
+                return sum(regions.map(reg => data.SupplyStatus[reg.Id] ?? 0))
+            }
+            function capacityInRegion(region: Region): number {
+                const res =
+                    region.Buildings
+                    .map(b =>
+                        {
+                            const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                            const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                            return level * capacity
+                        })
+                return sum(res)
+            }
+            function capacityInAirfield(airfield: Airfield): number {
+                const res =
+                    airfield.Buildings
+                    .map(b =>
+                        {
+                            const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                            const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                            return level * capacity
+                        })
+                return sum(res)
             }
             function airfieldsOf(coalition: Coalition) {
                 return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
             }
-            function planesInCoalition(coalition: Coalition) {
-                const planes = airfieldsOf(coalition).flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0).reduce((x, y) => x + y, 0)
+            function planesAtAirfields(airfields: Airfield[]) {
+                const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
                 widenRange(planesRange, planes)
                 return planes
             }
             const axisRegions = regionsOf("Axis")
             const alliesRegions = regionsOf("Allies")
+            const axisAirfields = airfieldsOf("Axis")
+            const alliesAirfields = airfieldsOf("Allies")
             axisNumRegions.push(axisRegions.length)
             alliesNumRegions.push(alliesRegions.length)
             axisSupplies.push(suppliesIn(axisRegions))
             alliesSupplies.push(suppliesIn(alliesRegions))
             axisGroundForces.push(totalGroundForces("Axis"))
             alliesGroundForces.push(totalGroundForces("Allies"))
-            axisPlanes.push(planesInCoalition("Axis"))
-            alliesPlanes.push(planesInCoalition("Allies"))
+            axisPlanes.push(planesAtAirfields(axisAirfields))
+            alliesPlanes.push(planesAtAirfields(alliesAirfields))
+            axisRegionCapacity.push(sum(axisRegions.map(capacityInRegion)))
+            alliesRegionCapacity.push(sum(alliesRegions.map(capacityInRegion)))
+            axisAirfieldCapacity.push(sum(axisAirfields.map(capacityInAirfield)))
+            alliesAirfieldCapacity.push(sum(alliesAirfields.map(capacityInAirfield)))
             timeline.push(date)
         }
     }
@@ -476,6 +539,15 @@ async function buildGraph(world: World, dates: DateTime[]) {
         return (x: number) => k * x
     }
     const plotData : Partial<Plotly.PlotData>[] = [
+        {
+            x: [timeline[0], timeline[timeline.length - 1]],
+            y: [0, 0],
+            name: "0 baseline",
+            mode: "lines",
+            line: {
+                color: "black"
+            }
+        },
         {
             x: timeline,
             y: axisNumRegions.map(mkScale(100)),
@@ -489,12 +561,12 @@ async function buildGraph(world: World, dates: DateTime[]) {
         {
             x: timeline,
             y: axisSupplies.map(mkScale(1e-3)),
-            name: "supplies (Axis) /1000"
+            name: "supplies (Axis) /1k"
         },
         {
             x: timeline,
             y: alliesSupplies.map(mkScale(1e-3)),
-            name: "supplies (Allies) /1000"
+            name: "supplies (Allies) /1k"
         },
         {
             x: timeline,
@@ -517,16 +589,34 @@ async function buildGraph(world: World, dates: DateTime[]) {
             name: "planes (Allies)"
         },
         {
-            x: [timeline[0], timeline[timeline.length - 1]],
-            y: [0, 0],
-            name: "0 baseline",
-            mode: "lines",
-            line: {
-                color: "black"
-            }
+            x: timeline,
+            y: axisRegionCapacity.map(mkScale(1.0e-4)),
+            name: "city storage (Axis) /10k"
+        },
+        {
+            x: timeline,
+            y: alliesRegionCapacity.map(mkScale(1.0e-4)),
+            name: "city storage (Allies) /10k"
+        },
+        {
+            x: timeline,
+            y: axisAirfieldCapacity.map(mkScale(1.0e-3)),
+            name: "airfield storage (Axis) /1k"
+        },
+        {
+            x: timeline,
+            y: alliesAirfieldCapacity.map(mkScale(1.0e-3)),
+            name: "airfield storage (Allies) /1k"
         }
     ]
-    const graph = Plotly.newPlot(graphDiv, plotData, { margin: { t: 0 } })
+    const graph = Plotly.newPlot(graphDiv, plotData,
+        {
+            margin: { t: 0 },
+            showlegend: true,
+            legend: {
+                y: 0.5
+            }
+        })
     return graph
 }
 
