@@ -402,19 +402,6 @@ interface ValueRange {
     max: number
 }
 
-function widenRange(range: ValueRange, x: number) {
-    if (range.min > x) range.min = x
-    if (range.max < x) range.max = x
-}
-
-function enlarged(range: ValueRange) {
-    const w = range.max - range.min
-    return {
-        min: range.min - 0.05 * w,
-        max: range.max + 0.05 * w
-    }
-}
-
 // Signature of functions to draw polylines using the game's coordinate system
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
 
@@ -677,8 +664,6 @@ async function buildGraph(world: World, dates: DateTime[]) {
     const axisPlanes: number[] = []
     const alliesPlanes: number[] = []
     const timeline: string[] = []
-    let groundForcesRange = { min: 0, max: 0 }
-    let planesRange = { min: 0, max: 0 }
     for (let i = 0; i < dates.length; ++i) {
         const date = dateToStr(dates[i])
         const response = await fetch(config.campaignServerUrl + `/query/past/${i}`)
@@ -687,7 +672,6 @@ async function buildGraph(world: World, dates: DateTime[]) {
             states.push(data)
             function totalGroundForces(coalition: Coalition) {
                 const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
-                widenRange(groundForcesRange, total)
                 return total
             }
             function regionsOf(coalition: Coalition) {
@@ -723,7 +707,6 @@ async function buildGraph(world: World, dates: DateTime[]) {
             }
             function planesAtAirfields(airfields: Airfield[]) {
                 const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
-                widenRange(planesRange, planes)
                 return planes
             }
             const axisRegions = regionsOf("Axis")
