@@ -1,8 +1,8 @@
-import * as Types from "./types"
-import {DataSource} from "./dataSource"
+/// <reference path="./types.ts"
+/// <reference path="./dataSource.ts"
 
-export class SampleDataSource implements DataSource {
-    world: Types.World =
+class SampleDataSource implements DataSource {
+    world: World =
     {
         "Scenario": "RheinlandSummer",
         "Map": "rheinland-summer",
@@ -31709,7 +31709,7 @@ export class SampleDataSource implements DataSource {
         ]
       }
 
-    dates: Types.DateTime[] =
+    dates: DateTime[] =
     [
         {
           "Year": 1944,
@@ -31734,7 +31734,7 @@ export class SampleDataSource implements DataSource {
         },
       ]
 
-    states: Types.WarState[] =
+    states: WarState[] =
       [
         {
             "Date": {
@@ -37240,7 +37240,7 @@ export class SampleDataSource implements DataSource {
           }
       ]
 
-    simSteps: (Types.SimulationStep[] | null)[] =
+    simSteps: (SimulationStep[] | null)[] =
       [
         null,
         [

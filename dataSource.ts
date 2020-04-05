@@ -1,13 +1,13 @@
-import * as Types from "./types"
+/// <reference path="./types.ts" />
 
-export interface DataSource {
-    getWorld(): Promise<Types.World | null>
-    getDates(): Promise<Types.DateTime[] | null>
-    getState(idx: number): Promise<Types.WarState | null>
-    getSimulationSteps(idx: number): Promise<Types.SimulationStep[] | null>
+interface DataSource {
+    getWorld(): Promise<World | null>
+    getDates(): Promise<DateTime[] | null>
+    getState(idx: number): Promise<WarState | null>
+    getSimulationSteps(idx: number): Promise<SimulationStep[] | null>
 }
 
-export class WebDataSource implements DataSource {
+class WebDataSource implements DataSource {
     url = ""
     constructor(url: string) {
         this.url = url
@@ -17,7 +17,7 @@ export class WebDataSource implements DataSource {
         const response = await fetch(this.url + "/query/world")
         if (!response.ok)
             return null
-        const world : Types.World = await response.json()
+        const world : World = await response.json()
         return world
     }
 
@@ -25,7 +25,7 @@ export class WebDataSource implements DataSource {
         const response = await fetch(this.url + "/query/dates")
         if (!response.ok)
             return null
-        const dates = await response.json() as Types.DateTime[]
+        const dates = await response.json() as DateTime[]
         return dates
     }
 
@@ -34,7 +34,7 @@ export class WebDataSource implements DataSource {
         const dayResponse = await fetch(this.url + query)
         if (!dayResponse.ok)
             return null
-        const state = await dayResponse.json() as Types.WarState
+        const state = await dayResponse.json() as WarState
         return state
     }
 
@@ -42,7 +42,7 @@ export class WebDataSource implements DataSource {
         const responseSim = await fetch(this.url + `/query/simulation/${idx}`)
         if (!responseSim.ok)
             return null
-        const simData = await responseSim.json() as Types.SimulationStep[]
+        const simData = await responseSim.json() as SimulationStep[]
         return simData
     }
 }

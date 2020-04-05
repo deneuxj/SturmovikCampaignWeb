@@ -1,14 +1,14 @@
-import { Dict, keysOf, dig2 } from "./util"
+/// <reference path="./util.ts" />
 
 // -------- Types: SturmovikCampaign's WebController
-export type Coalition = "Allies" | "Axis"
+type Coalition = "Allies" | "Axis"
 
-export interface Vector2 {
+interface Vector2 {
     X: number
     Y: number
 }
 
-export interface OrientedPosition {
+interface OrientedPosition {
     Position: Vector2
     Altitude: number
     Rotation: number
@@ -23,19 +23,19 @@ interface BuildingProperties {
     Capacity: null | number
 }
 
-export interface BuildingInstance {
+interface BuildingInstance {
     Position: OrientedPosition
     PropertiesId: number
 }
 
-export interface Airfield {
+interface Airfield {
     Id: string
     Position: Vector2
     Region: string
     Buildings: BuildingInstance[]
 }
 
-export interface Region {
+interface Region {
     Id: string
     Boundary: Vector2[]
     Position: Vector2
@@ -45,12 +45,12 @@ export interface Region {
     IsEntry: boolean
 }
  
-export interface PlaneModel {
+interface PlaneModel {
     Name: string
     [propname: string]: any
 }
 
-export interface World {
+interface World {
     Scenario: string
     Map: string
     MapSouthWest: Vector2
@@ -63,7 +63,7 @@ export interface World {
     StartDate: DateTime
 }
 
-export interface DateTime {
+interface DateTime {
     Year: number
     Month: number
     Day: number
@@ -71,29 +71,29 @@ export interface DateTime {
     Minute: number
 }
 
-export function dateToStr(date: DateTime): string {
+function dateToStr(date: DateTime): string {
     return `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`
 }
 
-export interface GroundForces {
+interface GroundForces {
     Region: string
     Coalition: Coalition
     Forces: number
 }
 
-export interface BuildingStatus {
+interface BuildingStatus {
     Position: OrientedPosition
     HealthLevel: number
     FunctionalityLevel: number
 }
 
-export interface AdjacentRegionsTransportCapacity {
+interface AdjacentRegionsTransportCapacity {
     RegionA: string
     RegionB: string
     Capacity: number
 }
 
-export interface WarState {
+interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
     RegionOwner: Dict<Coalition>
@@ -106,89 +106,89 @@ export interface WarState {
     Weather: any
 }
 
-export interface DamageBuildingPartArgs {
+interface DamageBuildingPartArgs {
     BuildingAt: OrientedPosition
     Part: number
     Damage: number
 }
 
-export interface DamageBuildingPartCmd {
+interface DamageBuildingPartCmd {
     Verb: "DamageBuildingPart"
     Args: DamageBuildingPartArgs
 }
 
-export interface RepairBuildingPartArgs {
+interface RepairBuildingPartArgs {
     BuildingAt: OrientedPosition
     Part: number
     Repair: number
 }
 
-export interface RepairBuildingPartCmd {
+interface RepairBuildingPartCmd {
     Verb: "RepairBuildingPart"
     Args: RepairBuildingPartArgs
 }
 
-export interface AddRemovePlaneArgs {
+interface AddRemovePlaneArgs {
     Airfield: string
     Plane: string
     Amount: number
 }
 
-export interface AddRemovePlaneCmd {
+interface AddRemovePlaneCmd {
     Verb: "RemovePlane" | "AddPlane"
     Args: AddRemovePlaneArgs
 }
 
-export interface AddDestroyGroundForcesArgs {
+interface AddDestroyGroundForcesArgs {
     Region: string
     Coalition: Coalition
     Amount: number
 }
 
-export interface AddDestroyGroundForcesCmd {
+interface AddDestroyGroundForcesCmd {
     Verb: "AddGroundForces" | "DestroyGroundForces"
     Args: AddDestroyGroundForcesArgs
 }
 
-export interface MoveGroundForcesArgs {
+interface MoveGroundForcesArgs {
     Start: string
     Destination: string
     Coalition: Coalition
     Amount: number
 }
 
-export interface MoveGroundForcesCmd {
+interface MoveGroundForcesCmd {
     Verb: "MoveGroundForces"
     Args: MoveGroundForcesArgs
 }
 
-export interface SetRegionOwnerArgs {
+interface SetRegionOwnerArgs {
     Region: string
     Coalition: Coalition
 }
 
-export interface SetRegionOwnerCmd {
+interface SetRegionOwnerCmd {
     Verb: "SetRegionOwner"
     Args: SetRegionOwnerArgs
 }
 
-export interface AdvanceTimeArgs {
+interface AdvanceTimeArgs {
     Hours: number
 }
 
-export interface AdvanceTimeCmd {
+interface AdvanceTimeCmd {
     Verb: "AdvanceTime"
     Args: AdvanceTimeArgs
 }
 
-export interface OtherCmd {
+interface OtherCmd {
     Verb: string
     Args: any
 }
 
-export type Command = DamageBuildingPartCmd | RepairBuildingPartCmd | AddRemovePlaneCmd | AddDestroyGroundForcesCmd | MoveGroundForcesCmd | SetRegionOwnerCmd | AdvanceTimeCmd | OtherCmd
+type Command = DamageBuildingPartCmd | RepairBuildingPartCmd | AddRemovePlaneCmd | AddDestroyGroundForcesCmd | MoveGroundForcesCmd | SetRegionOwnerCmd | AdvanceTimeCmd | OtherCmd
 
-export function commandToHtml(cmd: Command) {
+function commandToHtml(cmd: Command) {
     let description = undefined
     let args = undefined
     function astxt(s: string) { return document.createTextNode(s) }
@@ -242,64 +242,64 @@ export function commandToHtml(cmd: Command) {
     return div
 }
 
-export interface UpdatedStorageValues {
+interface UpdatedStorageValues {
     BuildingAt: OrientedPosition
     Amount: number
 }
 
-export interface UpdatedStorageResult {
+interface UpdatedStorageResult {
     ChangeDescription: "UpdatedStorageValue"
     Values: UpdatedStorageValues
 }
 
-export interface UpdatedPlanesValues {
+interface UpdatedPlanesValues {
     Airfield: string
     Planes: Dict<number>
 }
 
-export interface UpdatedPlanesResult {
+interface UpdatedPlanesResult {
     ChangeDescription: "UpdatedPlanesAtAirfield"
     Values: UpdatedPlanesValues
 }
 
-export interface UpdatedGroundForcesValues {
+interface UpdatedGroundForcesValues {
     Region: string
     Coalition: Coalition
     Forces: number
 }
 
-export interface UpdatedGroundForcesResult {
+interface UpdatedGroundForcesResult {
     ChangeDescription: "UpdatedGroundForces"
     Values: UpdatedGroundForcesValues
 }
 
-export interface RegionOwnerSetValues {
+interface RegionOwnerSetValues {
     Region: string
     Coalition: Coalition
 }
 
-export interface RegionOwnerSetResult {
+interface RegionOwnerSetResult {
     ChangeDescription: "RegionOwnerSet"
     Values: RegionOwnerSetValues
 }
 
-export interface TimeSetValues {
+interface TimeSetValues {
     DateTime: DateTime
 }
 
-export interface TimeSetResult {
+interface TimeSetResult {
     ChangeDescription: "TimeSet"
     Values: TimeSetValues
 }
 
-export interface OtherResult {
+interface OtherResult {
     ChangeDescription: string
     Values: any
 }
 
-export type Result = UpdatedStorageResult | UpdatedPlanesResult | UpdatedGroundForcesResult | RegionOwnerSetResult | TimeSetResult | OtherResult
+type Result = UpdatedStorageResult | UpdatedPlanesResult | UpdatedGroundForcesResult | RegionOwnerSetResult | TimeSetResult | OtherResult
 
-export function resultToHtml(result: Result) {
+function resultToHtml(result: Result) {
     const li = document.createElement("li")
     let txt = undefined
     let args = undefined
@@ -341,13 +341,13 @@ export function resultToHtml(result: Result) {
     return li
 }
 
-export interface SimulationStep {
+interface SimulationStep {
     Description: string
     Command: Command[]
     Results: Result[]
 }
 
-export function simulationStepToHtml(step : SimulationStep) {
+function simulationStepToHtml(step : SimulationStep) {
     const small = document.createElement("small")
     const txt = document.createTextNode(step.Description)
     small.appendChild(txt)
@@ -355,7 +355,7 @@ export function simulationStepToHtml(step : SimulationStep) {
 }
 
 // Annotate a region with its current owner
-export class RegionWithOwner {
+class RegionWithOwner {
     properties: Region
     owner: string
 

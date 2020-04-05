@@ -1,26 +1,26 @@
-export type Dict<T> = Partial<Record<string, T>>
+type Dict<T> = Partial<Record<string, T>>
 
 // A silly function to print minutes, month and day numbers nicely, with 2 digits and a leading 0 if needed.
-export function dig2(n: number): string {
+function dig2(n: number): string {
     if (n < 10) 
         return "0" + n.toString()
     return n.toString()
 }
 
 // Remove all children from an HTML element
-export function removeAllChildren(elmt : HTMLElement) {
+function removeAllChildren(elmt : HTMLElement) {
     while (elmt.lastChild != null) {
         elmt.removeChild(elmt.lastChild)
     }
 }
 
 // Get the keys of a Dict
-export function keysOf<T>(dict : Dict<T> | null | undefined) {
+function keysOf<T>(dict : Dict<T> | null | undefined) {
     return Object.getOwnPropertyNames(dict)
 }
 
 // Get the values in a Dict
-export function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
+function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
     if (dict == null || dict == undefined)
         return []
     let ret: T[] = []
@@ -31,6 +31,6 @@ export function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
     return ret
 }
 
-export function sum(xs: number[]) {
+function sum(xs: number[]) {
     return xs.reduce((x, y) => x + y, 0)
 }
