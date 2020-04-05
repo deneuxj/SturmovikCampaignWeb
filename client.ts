@@ -4,6 +4,7 @@
 
 import * as Types from "./types"
 import * as DataSource from "./dataSource"
+import { SampleDataSource } from "./sampleData"
 import L from "leaflet"
 import { removeAllChildren, sum, valuesOf } from "./util"
 import Plotly from "plotly.js"
@@ -44,7 +45,8 @@ const config = {
     tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png"
 }
 
-const dataSource = new DataSource.WebDataSource(config.campaignServerUrl)
+//const dataSource = new DataSource.WebDataSource(config.campaignServerUrl)
+const dataSource = new SampleDataSource()
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
@@ -301,7 +303,7 @@ async function buildGraph(world: Types.World, dates: Types.DateTime[]) {
                 region.Buildings
                 .map(b =>
                     {
-                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
                         const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
                         return level * capacity
                     })
@@ -314,7 +316,7 @@ async function buildGraph(world: Types.World, dates: Types.DateTime[]) {
                 airfield.Buildings
                 .map(b =>
                     {
-                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
                         const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
                         return level * capacity
                     })

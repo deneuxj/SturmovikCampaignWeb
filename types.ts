@@ -14,10 +14,13 @@ export interface OrientedPosition {
     Rotation: number
 }
 
-export interface BuildingProperties {
+interface BuildingProperties {
     Id: number
     Model: string
-    Capacity: number
+    Script: string
+    Durability: number
+    NumParts: number
+    Capacity: null | number
 }
 
 export interface BuildingInstance {
@@ -38,10 +41,13 @@ export interface Region {
     Position: Vector2
     InitialOwner: Coalition | null
     Buildings: BuildingInstance[]
+    Neighbours: string[]
+    IsEntry: boolean
 }
  
 export interface PlaneModel {
     Name: string
+    [propname: string]: any
 }
 
 export interface World {
@@ -53,6 +59,8 @@ export interface World {
     Airfields: Airfield[]
     PlaneSet: PlaneModel[]
     BuildingProperties: BuildingProperties[]
+    Bridges: BuildingInstance[]
+    StartDate: DateTime
 }
 
 export interface DateTime {
@@ -79,6 +87,12 @@ export interface BuildingStatus {
     FunctionalityLevel: number
 }
 
+export interface AdjacentRegionsTransportCapacity {
+    RegionA: string
+    RegionB: string
+    Capacity: number
+}
+
 export interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
@@ -86,6 +100,10 @@ export interface WarState {
     SupplyStatus: Dict<number>
     Planes: Dict<Dict<number>>
     BuildingHealth: BuildingStatus[]
+    BridgeHealth: BuildingStatus[]
+    RoadTransport: AdjacentRegionsTransportCapacity[]
+    RailTransport: AdjacentRegionsTransportCapacity[]
+    Weather: any
 }
 
 export interface DamageBuildingPartArgs {
