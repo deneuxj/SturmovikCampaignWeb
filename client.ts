@@ -3,6 +3,7 @@
 /// <reference types="plotly.js" />
 
 import * as Types from "./types"
+import * as DataSource from "./dataSource"
 import L from "leaflet"
 import { removeAllChildren, sum, valuesOf } from "./util"
 import Plotly from "plotly.js"
@@ -42,6 +43,8 @@ const config = {
     campaignServerUrl: "http://127.0.0.1:8080",
     tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png"
 }
+
+const dataSource = new DataSource.WebDataSource(config.campaignServerUrl)
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
@@ -113,10 +116,9 @@ let transform = (v : Types.Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
 // Get world data: Static information about regions, airfields...
 async function getWorldData() {
-    const response = await fetch(config.campaignServerUrl + "/query/world")
-    if (!response.ok)
+    const world = await dataSource.getWorld()
+    if (world == null)
         return null
-    const world : Types.World = await response.json()
     const mapName = world.Map
     const bounds = getMapBounds(mapName)
     if (bounds != undefined) {
@@ -160,11 +162,9 @@ function setDaysButtonLabel(label: string) {
 // Get the state of the world on a given date identified by its index in the list of dates, and update the UI
 function fetchDayData(world: Types.World, idx: number) {
     return async () => {
-        const query = `/query/past/${idx}`
-        const dayResponse = await fetch(config.campaignServerUrl + query)
+        const dayData = await dataSource.getState(idx)
         // Draw region borders
-        if (dayResponse.ok) {
-            const dayData = await dayResponse.json() as Types.WarState
+        if (dayData != null) {
             function drawPolyLine(vs: Types.Vector2[], color: string) {
                 const ps = vs.map(transform)
                 ps.push(ps[0])
@@ -182,9 +182,8 @@ function fetchDayData(world: Types.World, idx: number) {
         // Populate list of events
         if (dayEvents != null) {
             removeAllChildren(dayEvents)
-            const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
-            if (dayResponse.ok) {
-                const dayActions = await dayActionResponse.json() as Types.SimulationStep[]
+            const dayActions = await dataSource.getSimulationSteps(idx + 1)
+            if (dayActions != null) {
                 let isSecondary = false
                 for (const action of dayActions) {
                     const content = Types.simulationStepToHtml(action)
@@ -239,12 +238,9 @@ function newEntry(world: Types.World, idx: number, label: string) {
 async function getDays(world: Types.World) {
     if (dayslist == null)
         return null
-    const response = await fetch(config.campaignServerUrl + "/query/dates")
-    if (!response.ok)
+    const dates = await dataSource.getDates()
+    if (dates == null)
         return null
-
-    const dates = await response.json() as Types.DateTime[]
-    
     for (let index = 0; index < dates.length; index++) {
         const date = dates[index];
         dayslist.appendChild(newEntry(world, index, Types.dateToStr(date)))                
@@ -275,106 +271,122 @@ async function buildGraph(world: Types.World, dates: Types.DateTime[]) {
     const timeline: string[] = []
     for (let i = 0; i < dates.length; ++i) {
         const date = Types.dateToStr(dates[i])
-        const response = await fetch(config.campaignServerUrl + `/query/past/${i}`)
-        const responseSim = await fetch(config.campaignServerUrl + `/query/simulation/${i}`)
-        if (response.ok && responseSim.ok) {
-            const data: Types.WarState = await response.json()
-            const simData:Types.SimulationStep[] = await responseSim.json()
-            states.push(data)
-            function totalGroundForces(coalition: Types.Coalition) {
-                const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
-                return total
+        const data = await dataSource.getState(i)
+        if (data == null)
+            continue
+        const simData = await dataSource.getSimulationSteps(i + 1)
+        if (simData == null)
+            continue
+        states.push(data)
+        function totalGroundForces(coalition: Types.Coalition) {
+            if (data == null)
+                return 0
+            const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
+            return total
+        }
+        function regionsOf(coalition: Types.Coalition) {
+            if (data == null)
+                return []
+            return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
+        }
+        function suppliesIn(regions: Types.Region[]) {
+            if (data == null)
+                return 0
+            return sum(regions.map(reg => data.SupplyStatus[reg.Id] ?? 0))
+        }
+        function capacityInRegion(region: Types.Region): number {
+            if (data == null)
+                return 0
+            const res =
+                region.Buildings
+                .map(b =>
+                    {
+                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                        const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                        return level * capacity
+                    })
+            return sum(res)
+        }
+        function capacityInAirfield(airfield: Types.Airfield): number {
+            if (data == null)
+                return 0
+            const res =
+                airfield.Buildings
+                .map(b =>
+                    {
+                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity
+                        const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                        return level * capacity
+                    })
+            return sum(res)
+        }
+        function airfieldsOf(coalition: Types.Coalition) {
+            if (data == null)
+                return []
+            return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
+        }
+        function planesAtAirfields(airfields: Types.Airfield[]) {
+            if (data == null)
+                return 0
+            const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
+            return planes
+        }
+        function planeLosses(airfields: Types.Airfield[]) {
+            if (data == null)
+                return { strafed: 0, shot: 0 }
+            let diff = 0
+            let strafed = 0
+            function isInAirfields(airfieldName: string) {
+                return airfields.find(af => af.Id == airfieldName) != undefined
             }
-            function regionsOf(coalition: Types.Coalition) {
-                return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
-            }
-            function suppliesIn(regions: Types.Region[]) {
-                return sum(regions.map(reg => data.SupplyStatus[reg.Id] ?? 0))
-            }
-            function capacityInRegion(region: Types.Region): number {
-                const res =
-                    region.Buildings
-                    .map(b =>
-                        {
-                            const capacity = world.BuildingProperties[b.PropertiesId].Capacity
-                            const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
-                            return level * capacity
-                        })
-                return sum(res)
-            }
-            function capacityInAirfield(airfield: Types.Airfield): number {
-                const res =
-                    airfield.Buildings
-                    .map(b =>
-                        {
-                            const capacity = world.BuildingProperties[b.PropertiesId].Capacity
-                            const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
-                            return level * capacity
-                        })
-                return sum(res)
-            }
-            function airfieldsOf(coalition: Types.Coalition) {
-                return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
-            }
-            function planesAtAirfields(airfields: Types.Airfield[]) {
-                const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
-                return planes
-            }
-            function planeLosses(airfields: Types.Airfield[]) {
-                let diff = 0
-                let strafed = 0
-                function isInAirfields(airfieldName: string) {
-                    return airfields.find(af => af.Id == airfieldName) != undefined
-                }
-                for (const step of simData) {
-                    for (const cmd of step.Command) {
-                        if (cmd.Verb == "AddPlane" && isInAirfields(cmd.Args.Airfield)) {
-                            if (step.Description.indexOf("landed") >= 0) {
-                                diff += cmd.Args.Amount
-                            }
+            for (const step of simData ?? []) {
+                for (const cmd of step.Command) {
+                    if (cmd.Verb == "AddPlane" && isInAirfields(cmd.Args.Airfield)) {
+                        if (step.Description.indexOf("landed") >= 0) {
+                            diff += cmd.Args.Amount
                         }
-                        else if (cmd.Verb == "RemovePlane" && isInAirfields(cmd.Args.Airfield)) {
-                            if (step.Description.indexOf("take off") >= 0) {
-                                diff -= cmd.Args.Amount
-                            }
-                            else if (step.Description.indexOf("arked plane") >= 0) {
-                                strafed += cmd.Args.Amount
-                            }
-                            else {
-                                console.debug(`Unhandled plane removal: ${step.Description}`)
-                            }
+                    }
+                    else if (cmd.Verb == "RemovePlane" && isInAirfields(cmd.Args.Airfield)) {
+                        if (step.Description.indexOf("take off") >= 0) {
+                            diff -= cmd.Args.Amount
+                        }
+                        else if (step.Description.indexOf("arked plane") >= 0) {
+                            strafed += cmd.Args.Amount
+                        }
+                        else {
+                            console.debug(`Unhandled plane removal: ${step.Description}`)
                         }
                     }
                 }
-                return {
-                    strafed: strafed,
-                    shot: diff < 0 ? -diff : 0
-                }
             }
-            const axisRegions = regionsOf("Axis")
-            const alliesRegions = regionsOf("Allies")
-            const axisAirfields = airfieldsOf("Axis")
-            const alliesAirfields = airfieldsOf("Allies")
-            const axisPlaneLosses = planeLosses(axisAirfields)
-            const alliesPlaneLosses = planeLosses(alliesAirfields)
-            axisNumRegions.push(axisRegions.length)
-            alliesNumRegions.push(alliesRegions.length)
-            axisSupplies.push(suppliesIn(axisRegions))
-            alliesSupplies.push(suppliesIn(alliesRegions))
-            axisGroundForces.push(totalGroundForces("Axis"))
-            alliesGroundForces.push(totalGroundForces("Allies"))
-            axisPlanes.push(planesAtAirfields(axisAirfields))
-            alliesPlanes.push(planesAtAirfields(alliesAirfields))
-            axisRegionCapacity.push(sum(axisRegions.map(capacityInRegion)))
-            alliesRegionCapacity.push(sum(alliesRegions.map(capacityInRegion)))
-            axisAirfieldCapacity.push(sum(axisAirfields.map(capacityInAirfield)))
-            alliesAirfieldCapacity.push(sum(alliesAirfields.map(capacityInAirfield)))
-            axisFlightLosses.push(axisPlaneLosses.shot)
-            alliesFlightLosses.push(alliesPlaneLosses.shot)
-            axisParkedLosses.push(axisPlaneLosses.strafed)
-            alliesParkedLosses.push(alliesPlaneLosses.strafed)
-            timeline.push(date)
+            return {
+                strafed: strafed,
+                shot: diff < 0 ? -diff : 0
+            }
         }
+        const axisRegions = regionsOf("Axis")
+        const alliesRegions = regionsOf("Allies")
+        const axisAirfields = airfieldsOf("Axis")
+        const alliesAirfields = airfieldsOf("Allies")
+        const axisPlaneLosses = planeLosses(axisAirfields)
+        const alliesPlaneLosses = planeLosses(alliesAirfields)
+        axisNumRegions.push(axisRegions.length)
+        alliesNumRegions.push(alliesRegions.length)
+        axisSupplies.push(suppliesIn(axisRegions))
+        alliesSupplies.push(suppliesIn(alliesRegions))
+        axisGroundForces.push(totalGroundForces("Axis"))
+        alliesGroundForces.push(totalGroundForces("Allies"))
+        axisPlanes.push(planesAtAirfields(axisAirfields))
+        alliesPlanes.push(planesAtAirfields(alliesAirfields))
+        axisRegionCapacity.push(sum(axisRegions.map(capacityInRegion)))
+        alliesRegionCapacity.push(sum(alliesRegions.map(capacityInRegion)))
+        axisAirfieldCapacity.push(sum(axisAirfields.map(capacityInAirfield)))
+        alliesAirfieldCapacity.push(sum(alliesAirfields.map(capacityInAirfield)))
+        axisFlightLosses.push(axisPlaneLosses.shot)
+        alliesFlightLosses.push(alliesPlaneLosses.shot)
+        axisParkedLosses.push(axisPlaneLosses.strafed)
+        alliesParkedLosses.push(alliesPlaneLosses.strafed)
+        timeline.push(date)
     }
     function mkScale(k: number) {
         return (x: number) => k * x
