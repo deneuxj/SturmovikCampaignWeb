@@ -663,12 +663,18 @@ async function buildGraph(world: World, dates: DateTime[]) {
     const alliesGroundForces: number[] = []
     const axisPlanes: number[] = []
     const alliesPlanes: number[] = []
+    const axisFlightLosses: number[] = []
+    const alliesFlightLosses: number[] = []
+    const axisParkedLosses: number[] = []
+    const alliesParkedLosses: number[] = []
     const timeline: string[] = []
     for (let i = 0; i < dates.length; ++i) {
         const date = dateToStr(dates[i])
         const response = await fetch(config.campaignServerUrl + `/query/past/${i}`)
-        if (response.ok) {
+        const responseSim = await fetch(config.campaignServerUrl + `/query/simulation/${i}`)
+        if (response.ok && responseSim.ok) {
             const data: WarState = await response.json()
+            const simData:SimulationStep[] = await responseSim.json()
             states.push(data)
             function totalGroundForces(coalition: Coalition) {
                 const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
@@ -709,10 +715,43 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
                 return planes
             }
+            function planeLosses(airfields: Airfield[]) {
+                let diff = 0
+                let strafed = 0
+                function isInAirfields(airfieldName: string) {
+                    return airfields.find(af => af.Id == airfieldName) != undefined
+                }
+                for (const step of simData) {
+                    for (const cmd of step.Command) {
+                        if (cmd.Verb == "AddPlane" && isInAirfields(cmd.Args.Airfield)) {
+                            if (step.Description.indexOf("landed") >= 0) {
+                                diff += cmd.Args.Amount
+                            }
+                        }
+                        else if (cmd.Verb == "RemovePlane" && isInAirfields(cmd.Args.Airfield)) {
+                            if (step.Description.indexOf("take off") >= 0) {
+                                diff -= cmd.Args.Amount
+                            }
+                            else if (step.Description.indexOf("arked plane") >= 0) {
+                                strafed += cmd.Args.Amount
+                            }
+                            else {
+                                console.debug(`Unhandled plane removal: ${step.Description}`)
+                            }
+                        }
+                    }
+                }
+                return {
+                    strafed: strafed,
+                    shot: diff < 0 ? -diff : 0
+                }
+            }
             const axisRegions = regionsOf("Axis")
             const alliesRegions = regionsOf("Allies")
             const axisAirfields = airfieldsOf("Axis")
             const alliesAirfields = airfieldsOf("Allies")
+            const axisPlaneLosses = planeLosses(axisAirfields)
+            const alliesPlaneLosses = planeLosses(alliesAirfields)
             axisNumRegions.push(axisRegions.length)
             alliesNumRegions.push(alliesRegions.length)
             axisSupplies.push(suppliesIn(axisRegions))
@@ -725,6 +764,10 @@ async function buildGraph(world: World, dates: DateTime[]) {
             alliesRegionCapacity.push(sum(alliesRegions.map(capacityInRegion)))
             axisAirfieldCapacity.push(sum(axisAirfields.map(capacityInAirfield)))
             alliesAirfieldCapacity.push(sum(alliesAirfields.map(capacityInAirfield)))
+            axisFlightLosses.push(axisPlaneLosses.shot)
+            alliesFlightLosses.push(alliesPlaneLosses.shot)
+            axisParkedLosses.push(axisPlaneLosses.strafed)
+            alliesParkedLosses.push(alliesPlaneLosses.strafed)
             timeline.push(date)
         }
     }
@@ -800,6 +843,26 @@ async function buildGraph(world: World, dates: DateTime[]) {
             x: timeline,
             y: alliesAirfieldCapacity.map(mkScale(1.0e-3)),
             name: "airfield storage (Allies) /1k"
+        },
+        {
+            x: timeline,
+            y: axisFlightLosses,
+            name: "inflight losses (Axis)"
+        },
+        {
+            x: timeline,
+            y: alliesFlightLosses,
+            name: "inflight losses (Allies)"
+        },
+        {
+            x: timeline,
+            y: axisParkedLosses,
+            name: "parked planes losses (Axis)"
+        },
+        {
+            x: timeline,
+            y: alliesParkedLosses,
+            name: "parked planes losses (Allies)"
         }
     ]
     const graph = Plotly.newPlot(graphDiv, plotData,
