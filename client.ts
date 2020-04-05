@@ -2,423 +2,28 @@
 /// <reference types="bootstrap" />
 /// <reference types="plotly.js" />
 
-type Dict<T> = Partial<Record<string, T>>
-
-// -------- Types: SturmovikCampaign's WebController
-type Coalition = "Allies" | "Axis"
-
-interface Vector2 {
-    X: number
-    Y: number
-}
-
-interface OrientedPosition {
-    Position: Vector2
-    Altitude: number
-    Rotation: number
-}
-
-interface BuildingProperties {
-    Id: number
-    Model: string
-    Capacity: number
-}
-
-interface BuildingInstance {
-    Position: OrientedPosition
-    PropertiesId: number
-}
-
-interface Airfield {
-    Id: string
-    Position: Vector2
-    Region: string
-    Buildings: BuildingInstance[]
-}
-
-interface Region {
-    Id: string
-    Boundary: Vector2[]
-    Position: Vector2
-    InitialOwner: Coalition | null
-    Buildings: BuildingInstance[]
-}
- 
-interface PlaneModel {
-    Name: string
-}
-
-interface World {
-    Scenario: string
-    Map: string
-    MapSouthWest: Vector2
-    MapNorthEast: Vector2
-    Regions: Region[]
-    Airfields: Airfield[]
-    PlaneSet: PlaneModel[]
-    BuildingProperties: BuildingProperties[]
-}
-
-interface DateTime {
-    Year: number
-    Month: number
-    Day: number
-    Hour: number
-    Minute: number
-}
-
-function dateToStr(date: DateTime): string {
-    return `${date.Year}-${dig2(date.Month)}-${dig2(date.Day)} ${date.Hour}:${dig2(date.Minute)}`
-}
-
-interface GroundForces {
-    Region: string
-    Coalition: Coalition
-    Forces: number
-}
-
-interface BuildingStatus {
-    Position: OrientedPosition
-    HealthLevel: number
-    FunctionalityLevel: number
-}
-
-interface WarState {
-    Date: DateTime
-    GroundForces: GroundForces[]
-    RegionOwner: Dict<Coalition>
-    SupplyStatus: Dict<number>
-    Planes: Dict<Dict<number>>
-    BuildingHealth: BuildingStatus[]
-}
-
-interface DamageBuildingPartArgs {
-    BuildingAt: OrientedPosition
-    Part: number
-    Damage: number
-}
-
-interface DamageBuildingPartCmd {
-    Verb: "DamageBuildingPart"
-    Args: DamageBuildingPartArgs
-}
-
-interface RepairBuildingPartArgs {
-    BuildingAt: OrientedPosition
-    Part: number
-    Repair: number
-}
-
-interface RepairBuildingPartCmd {
-    Verb: "RepairBuildingPart"
-    Args: RepairBuildingPartArgs
-}
-
-interface AddRemovePlaneArgs {
-    Airfield: string
-    Plane: string
-    Amount: number
-}
-
-interface AddRemovePlaneCmd {
-    Verb: "RemovePlane" | "AddPlane"
-    Args: AddRemovePlaneArgs
-}
-
-interface AddDestroyGroundForcesArgs {
-    Region: string
-    Coalition: Coalition
-    Amount: number
-}
-
-interface AddDestroyGroundForcesCmd {
-    Verb: "AddGroundForces" | "DestroyGroundForces"
-    Args: AddDestroyGroundForcesArgs
-}
-
-interface MoveGroundForcesArgs {
-    Start: string
-    Destination: string
-    Coalition: Coalition
-    Amount: number
-}
-
-interface MoveGroundForcesCmd {
-    Verb: "MoveGroundForces"
-    Args: MoveGroundForcesArgs
-}
-
-interface SetRegionOwnerArgs {
-    Region: string
-    Coalition: Coalition
-}
-
-interface SetRegionOwnerCmd {
-    Verb: "SetRegionOwner"
-    Args: SetRegionOwnerArgs
-}
-
-interface AdvanceTimeArgs {
-    Hours: number
-}
-
-interface AdvanceTimeCmd {
-    Verb: "AdvanceTime"
-    Args: AdvanceTimeArgs
-}
-
-interface OtherCmd {
-    Verb: string
-    Args: any
-}
-
-type Command = DamageBuildingPartCmd | RepairBuildingPartCmd | AddRemovePlaneCmd | AddDestroyGroundForcesCmd | MoveGroundForcesCmd | SetRegionOwnerCmd | AdvanceTimeCmd | OtherCmd
-
-function commandToHtml(cmd: Command) {
-    let description = undefined
-    let args = undefined
-    function astxt(s: string) { return document.createTextNode(s) }
-    switch (cmd.Verb) {
-        case "AddGroundForces":
-            description = "Add ground forces"
-            args = astxt(`In ${cmd.Args.Region}, for ${cmd.Args.Coalition}: ${cmd.Args.Amount}`)
-            break
-        case "DamageBuildingPart":
-            description = "Damage building"
-            args = astxt(`At ${cmd.Args.BuildingAt.Position.X}, ${cmd.Args.BuildingAt.Position.Y}, part ${cmd.Args.Part}: ${cmd.Args.Damage}`)
-            break
-        case "DestroyGroundForces":
-            description = "Destroy ground forces"
-            args = astxt(`In ${cmd.Args.Region}, for ${cmd.Args.Coalition}: ${cmd.Args.Amount}`)
-            break
-        case "MoveGroundForces":
-            description = "Move ground forces"
-            args = astxt(`From ${cmd.Args.Start} into ${cmd.Args.Destination}, for ${cmd.Args.Coalition}: ${cmd.Args.Amount}`)
-            break
-        case "RemovePlane":
-            description = "Remove plane"
-            args = astxt(`From ${cmd.Args.Airfield}, plane ${cmd.Args.Plane}: ${cmd.Args.Amount}`)
-            break
-        case "AddPlane":
-            description = "Add plane"
-            args = astxt(`From ${cmd.Args.Airfield}, plane ${cmd.Args.Plane}: ${cmd.Args.Amount}`)
-            break
-        case "RepairBuildingPart":
-            description = "Repair building"
-            args = astxt(`At ${cmd.Args.BuildingAt.Position.X}, ${cmd.Args.BuildingAt.Position.Y}, part ${cmd.Args.Part}: ${cmd.Args.Repair}`)
-            break
-        case "SetRegionOwner":
-            description = "Take over region"
-            args = astxt(`${cmd.Args.Region} by ${cmd.Args.Coalition}`)
-            break
-        case "AdvanceTime":
-            description = "Advance time"
-            args = astxt(`Hours: ${cmd.Args.Hours}`)
-            break
-        default:
-            description = cmd.Verb
-            args = document.createTextNode("")
-    }
-    const div = document.createElement("div")
-    const p = document.createElement("p")
-    const txt = document.createTextNode(description)
-    p.appendChild(txt)
-    div.appendChild(p)
-    div.appendChild(args)
-    return div
-}
-
-interface UpdatedStorageValues {
-    BuildingAt: OrientedPosition
-    Amount: number
-}
-
-interface UpdatedStorageResult {
-    ChangeDescription: "UpdatedStorageValue"
-    Values: UpdatedStorageValues
-}
-
-interface UpdatedPlanesValues {
-    Airfield: string
-    Planes: Dict<number>
-}
-
-interface UpdatedPlanesResult {
-    ChangeDescription: "UpdatedPlanesAtAirfield"
-    Values: UpdatedPlanesValues
-}
-
-interface UpdatedGroundForcesValues {
-    Region: string
-    Coalition: Coalition
-    Forces: number
-}
-
-interface UpdatedGroundForcesResult {
-    ChangeDescription: "UpdatedGroundForces"
-    Values: UpdatedGroundForcesValues
-}
-
-interface RegionOwnerSetValues {
-    Region: string
-    Coalition: Coalition
-}
-
-interface RegionOwnerSetResult {
-    ChangeDescription: "RegionOwnerSet"
-    Values: RegionOwnerSetValues
-}
-
-interface TimeSetValues {
-    DateTime: DateTime
-}
-
-interface TimeSetResult {
-    ChangeDescription: "TimeSet"
-    Values: TimeSetValues
-}
-
-interface OtherResult {
-    ChangeDescription: string
-    Values: any
-}
-
-type Result = UpdatedStorageResult | UpdatedPlanesResult | UpdatedGroundForcesResult | RegionOwnerSetResult | TimeSetResult | OtherResult
-
-function resultToHtml(result: Result) {
-    const li = document.createElement("li")
-    let txt = undefined
-    let args = undefined
-    function astxt(s: string) { return document.createTextNode(s) }
-    switch (result.ChangeDescription) {
-        case "RegionOwnerSet":
-            txt = "Region owner set"
-            args = astxt(`${result.Values.Region} now owned by ${result.Values.Coalition}`)
-            break
-        case "TimeSet":
-            txt = "Time has been set"
-            args = astxt(`Time: ${dateToStr(result.Values.DateTime)}`)
-            break
-        case "UpdatedGroundForces":
-            txt = "Ground forces amount changed"
-            args = astxt(`${result.Values.Coalition} in ${result.Values.Region} now has ${result.Values.Forces}`)
-            break
-        case "UpdatedPlanesAtAirfield":
-            txt = "Planes at airfield changed"
-            args = document.createElement("li")
-            for (const key of keysOf(result.Values.Planes)) {
-                const ul = document.createElement("ul")
-                ul.appendChild(astxt(`${key}: ${result.Values.Planes[key]}`))
-                args.appendChild(ul)
-            }
-            break
-        case "UpdatedStorageValue":
-            txt = "Storage capacity updated"
-            args = astxt(`At ${result.Values.BuildingAt.Position.X}, ${result.Values.BuildingAt.Position.Y}: ${result.Values.Amount}`)
-            break
-        default:
-            txt = result.ChangeDescription
-            args = astxt("")
-    }
-    const p = document.createElement("p")
-    p.appendChild(document.createTextNode(txt))
-    li.appendChild(p)
-    li.appendChild(args)
-    return li
-}
-
-interface SimulationStep {
-    Description: string
-    Command: Command[]
-    Results: Result[]
-}
-
-function simulationStepToHtml(step : SimulationStep) {
-    const small = document.createElement("small")
-    const txt = document.createTextNode(step.Description)
-    small.appendChild(txt)
-    return small
-}
-
-// Annotate a region with its current owner
-class RegionWithOwner {
-    properties: Region
-    owner: string
-
-    constructor(region: Region, owner: string) {
-        this.properties = region
-        this.owner = owner
-    }
-
-    get color() {
-        if (this.owner == "Allies")
-            return "red"
-        else if (this.owner == "Axis")
-            return "blue"
-        else
-            return "gray"
-    }
-}
-
-// -------- Utility functions
-
-// A silly function to print minutes, month and day numbers nicely, with 2 digits and a leading 0 if needed.
-function dig2(n: number): string {
-    if (n < 10) 
-        return "0" + n.toString()
-    return n.toString()
-}
-
-// Remove all children from an HTML element
-function removeAllChildren(elmt : HTMLElement) {
-    while (elmt.lastChild != null) {
-        elmt.removeChild(elmt.lastChild)
-    }
-}
-
-// Get the keys of a Dict
-function keysOf<T>(dict : Dict<T> | null | undefined) {
-    return Object.getOwnPropertyNames(dict)
-}
-
-// Get the values in a Dict
-function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
-    if (dict == null || dict == undefined)
-        return []
-    let ret: T[] = []
-    const values = keysOf(dict).map(k => dict[k])
-    for(const v of values) {
-        if (v != undefined) ret.push(v)
-    }
-    return ret
-}
-
-function sum(xs: number[]) {
-    return xs.reduce((x, y) => x + y, 0)
-}
-
-interface ValueRange {
-    min: number
-    max: number
-}
+import * as Types from "./types"
+import L from "leaflet"
+import { removeAllChildren, sum, valuesOf } from "./util"
+import Plotly from "plotly.js"
 
 // Signature of functions to draw polylines using the game's coordinate system
-type DrawPolyLineFun = (vs: Vector2[], color: string) => void
+type DrawPolyLineFun = (vs: Types.Vector2[], color: string) => void
 
 // -------- Implementation
 
 // Render regions and their borders, with colours according to owner
 class BorderRenderer {
-    regions: Map<string, RegionWithOwner>
+    regions: Map<string, Types.RegionWithOwner>
 
     drawPolyLine: DrawPolyLineFun
 
-    constructor(drawPolyLine: DrawPolyLineFun, world: World, state: WarState) {
+    constructor(drawPolyLine: DrawPolyLineFun, world: Types.World, state: Types.WarState) {
         this.drawPolyLine = drawPolyLine
         this.regions = new Map()
         for (const region of world.Regions) {
             const owner = state.RegionOwner[region.Id] ?? "Neutral"
-            const ro = new RegionWithOwner(region, owner)
+            const ro = new Types.RegionWithOwner(region, owner)
             this.regions.set(region.Id, ro)
         }
     }
@@ -504,14 +109,14 @@ const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
 mapTiles.addTo(map)
 
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
-let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
+let transform = (v : Types.Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
 // Get world data: Static information about regions, airfields...
 async function getWorldData() {
     const response = await fetch(config.campaignServerUrl + "/query/world")
     if (!response.ok)
         return null
-    const world : World = await response.json()
+    const world : Types.World = await response.json()
     const mapName = world.Map
     const bounds = getMapBounds(mapName)
     if (bounds != undefined) {
@@ -521,7 +126,7 @@ async function getWorldData() {
         const mapHeight = mapNE.X - mapSW.X
         const leafWidth = bounds.getEast() - bounds.getWest()
         const leafHeight = bounds.getNorth() - bounds.getSouth()
-        transform = (v : Vector2) =>
+        transform = (v : Types.Vector2) =>
             new L.LatLng(
                 bounds.getSouth() + leafHeight * (v.X - mapSW.X) / mapHeight,
                 bounds.getWest() + leafWidth * (v.Y - mapSW.Y) / mapWidth);
@@ -553,14 +158,14 @@ function setDaysButtonLabel(label: string) {
 }
 
 // Get the state of the world on a given date identified by its index in the list of dates, and update the UI
-function fetchDayData(world: World, idx: number) {
+function fetchDayData(world: Types.World, idx: number) {
     return async () => {
         const query = `/query/past/${idx}`
         const dayResponse = await fetch(config.campaignServerUrl + query)
         // Draw region borders
         if (dayResponse.ok) {
-            const dayData = await dayResponse.json() as WarState
-            function drawPolyLine(vs: Vector2[], color: string) {
+            const dayData = await dayResponse.json() as Types.WarState
+            function drawPolyLine(vs: Types.Vector2[], color: string) {
                 const ps = vs.map(transform)
                 ps.push(ps[0])
                 const poly = L.polyline(ps, { color: color })
@@ -579,10 +184,10 @@ function fetchDayData(world: World, idx: number) {
             removeAllChildren(dayEvents)
             const dayActionResponse = await fetch(config.campaignServerUrl + `/query/simulation/${idx + 1}`)
             if (dayResponse.ok) {
-                const dayActions = await dayActionResponse.json() as SimulationStep[]
+                const dayActions = await dayActionResponse.json() as Types.SimulationStep[]
                 let isSecondary = false
                 for (const action of dayActions) {
-                    const content = simulationStepToHtml(action)
+                    const content = Types.simulationStepToHtml(action)
                     const entry = document.createElement("li")
                     entry.appendChild(content)
                     const classExtra = isSecondary? " list-group-item-secondary" : ""
@@ -592,14 +197,14 @@ function fetchDayData(world: World, idx: number) {
                             removeAllChildren(propertiesCell)
                             const small = document.createElement("small")
                             for (const cmd of action.Command) {
-                                small.appendChild(commandToHtml(cmd))
+                                small.appendChild(Types.commandToHtml(cmd))
                             }
                             if (action.Results.length > 0) {
                                 // Show detailed properties for the results of the select event
                                 const ul = document.createElement("ul")
                                 ul.setAttribute("class", "list-group")
                                 for (const result of action.Results) {
-                                    const li = resultToHtml(result)
+                                    const li = Types.resultToHtml(result)
                                     li.setAttribute("class", "list-group-item")
                                     ul.appendChild(li)
                                 }
@@ -617,7 +222,7 @@ function fetchDayData(world: World, idx: number) {
 }        
 
 // Create a new entry in the date picker dropdown
-function newEntry(world: World, idx: number, label: string) {
+function newEntry(world: Types.World, idx: number, label: string) {
     const li = document.createElement("li")
     li.addEventListener("click", fetchDayData(world, idx))
     li.addEventListener("click", setDaysButtonLabel(label))
@@ -631,26 +236,26 @@ function newEntry(world: World, idx: number, label: string) {
 }
 
 // Get the list of dates in the campaign, and set UI event handlers
-async function getDays(world: World) {
+async function getDays(world: Types.World) {
     if (dayslist == null)
         return null
     const response = await fetch(config.campaignServerUrl + "/query/dates")
     if (!response.ok)
         return null
 
-    const dates = await response.json() as DateTime[]
+    const dates = await response.json() as Types.DateTime[]
     
     for (let index = 0; index < dates.length; index++) {
         const date = dates[index];
-        dayslist.appendChild(newEntry(world, index, dateToStr(date)))                
+        dayslist.appendChild(newEntry(world, index, Types.dateToStr(date)))                
     }
     return dates
 }
 
-async function buildGraph(world: World, dates: DateTime[]) {
+async function buildGraph(world: Types.World, dates: Types.DateTime[]) {
     if (graphDiv == null)
         return
-    const states = new Array<WarState>()
+    const states = new Array<Types.WarState>()
     const axisNumRegions: number[] = []
     const alliesNumRegions: number[] = []
     const axisRegionCapacity: number[] = []
@@ -669,24 +274,24 @@ async function buildGraph(world: World, dates: DateTime[]) {
     const alliesParkedLosses: number[] = []
     const timeline: string[] = []
     for (let i = 0; i < dates.length; ++i) {
-        const date = dateToStr(dates[i])
+        const date = Types.dateToStr(dates[i])
         const response = await fetch(config.campaignServerUrl + `/query/past/${i}`)
         const responseSim = await fetch(config.campaignServerUrl + `/query/simulation/${i}`)
         if (response.ok && responseSim.ok) {
-            const data: WarState = await response.json()
-            const simData:SimulationStep[] = await responseSim.json()
+            const data: Types.WarState = await response.json()
+            const simData:Types.SimulationStep[] = await responseSim.json()
             states.push(data)
-            function totalGroundForces(coalition: Coalition) {
+            function totalGroundForces(coalition: Types.Coalition) {
                 const total = sum(data.GroundForces.filter(value => value.Coalition == coalition).map(value => value.Forces))
                 return total
             }
-            function regionsOf(coalition: Coalition) {
+            function regionsOf(coalition: Types.Coalition) {
                 return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
             }
-            function suppliesIn(regions: Region[]) {
+            function suppliesIn(regions: Types.Region[]) {
                 return sum(regions.map(reg => data.SupplyStatus[reg.Id] ?? 0))
             }
-            function capacityInRegion(region: Region): number {
+            function capacityInRegion(region: Types.Region): number {
                 const res =
                     region.Buildings
                     .map(b =>
@@ -697,7 +302,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
                         })
                 return sum(res)
             }
-            function capacityInAirfield(airfield: Airfield): number {
+            function capacityInAirfield(airfield: Types.Airfield): number {
                 const res =
                     airfield.Buildings
                     .map(b =>
@@ -708,14 +313,14 @@ async function buildGraph(world: World, dates: DateTime[]) {
                         })
                 return sum(res)
             }
-            function airfieldsOf(coalition: Coalition) {
+            function airfieldsOf(coalition: Types.Coalition) {
                 return world.Airfields.filter(af => data.RegionOwner[af.Region] == coalition)
             }
-            function planesAtAirfields(airfields: Airfield[]) {
+            function planesAtAirfields(airfields: Types.Airfield[]) {
                 const planes = sum(airfields.flatMap(af => valuesOf(data.Planes[af.Id]) ?? 0))
                 return planes
             }
-            function planeLosses(airfields: Airfield[]) {
+            function planeLosses(airfields: Types.Airfield[]) {
                 let diff = 0
                 let strafed = 0
                 function isInAirfields(airfieldName: string) {
