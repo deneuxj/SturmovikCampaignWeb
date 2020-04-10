@@ -42,8 +42,8 @@ const config = {
     tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png"
 }
 
-//const dataSource = new DataSource.WebDataSource(config.campaignServerUrl)
-const dataSource = new SampleDataSource()
+const dataSource = new WebDataSource(config.campaignServerUrl)
+//const dataSource = new SampleDataSource()
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
