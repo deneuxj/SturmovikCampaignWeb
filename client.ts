@@ -301,7 +301,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 .map(b =>
                     {
                         const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
-                        const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                        const level = (data.BuildingHealth.find(value => posEq(value.Position, b.Position))?.FunctionalityLevel ?? 1.0)
                         return level * capacity
                     })
             return sum(res)
@@ -314,7 +314,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
                 .map(b =>
                     {
                         const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
-                        const level = (data.BuildingHealth.find(value => value.Position == b.Position)?.FunctionalityLevel ?? 1.0)
+                        const level = (data.BuildingHealth.find(value => posEq(value.Position, b.Position))?.FunctionalityLevel ?? 1.0)
                         return level * capacity
                     })
             return sum(res)

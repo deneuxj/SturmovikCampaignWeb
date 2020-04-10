@@ -8,10 +8,25 @@ interface Vector2 {
     Y: number
 }
 
+function vNear(v1: Vector2, v2: Vector2) {
+    const eps2 = 0.0001
+    const dx = v1.X - v2.X
+    const dy = v1.Y - v2.Y
+    return dx * dx + dy * dy < eps2
+}
+
 interface OrientedPosition {
     Position: Vector2
     Altitude: number
     Rotation: number
+}
+
+function posEq(pos1: OrientedPosition, pos2: OrientedPosition) {
+    return ( 
+        pos1.Position.X === pos2.Position.X &&
+        pos2.Position.Y === pos2.Position.Y &&
+        pos1.Altitude === pos2.Altitude &&
+        pos2.Rotation === pos2.Rotation)
 }
 
 interface BuildingProperties {
