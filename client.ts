@@ -341,8 +341,11 @@ async function buildGraph(world: World, dates: DateTime[]) {
             for (const step of simData ?? []) {
                 for (const cmd of step.Command) {
                     if (cmd.Verb == "AddPlane" && isInAirfields(cmd.Args.Airfield)) {
-                        if (step.Description.indexOf("landed") >= 0) {
+                        if (step.Description.indexOf("landed") >= 0 || step.Description.indexOf("transfered") >= 0) {
                             diff += cmd.Args.Amount
+                        }
+                        else {
+                            console.debug(`Unhandled plane addition: ${step.Description}`)
                         }
                     }
                     else if (cmd.Verb == "RemovePlane" && isInAirfields(cmd.Args.Airfield)) {
@@ -358,6 +361,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
                     }
                 }
             }
+            console.debug(`strafed: ${strafed}, diff: ${diff}`)
             return {
                 strafed: strafed,
                 shot: diff < 0 ? -diff : 0
