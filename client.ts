@@ -211,6 +211,7 @@ function fetchDayData(world: World, idx: number) {
         const dayData = await dataSource.getState(idx)
         // Draw region borders
         if (dayData != null) {
+            const easy = new EasyWarState(world, dayData)
             function drawPolyLine(vs: Vector2[], color: string) {
                 const ps = vs.map(transform)
                 ps.push(ps[0])
@@ -224,6 +225,40 @@ function fetchDayData(world: World, idx: number) {
             }
             daysPolys = []
             regionsWithOwners.drawBorders()
+            // Set popups for regions: supplies, storage and troops
+            for (const region of world.Regions) {
+                const supplies = Math.round(dayData.SupplyStatus[region.Id] ?? 0)
+                const storage = Math.round(easy.capacityInRegion(region.Id))
+                let items =
+                [
+                    `logistics: ${supplies} m^3/h`,
+                    `storage: ${storage} m^3`,
+                ]
+                const owner = dayData.RegionOwner[region.Id]
+                if (owner != undefined) {
+                    const defenders = easy.groundForcesInRegion(region.Id, owner)
+                    const attackers = easy.groundForcesInRegion(region.Id, otherCoalition(owner))
+                    if (defenders > 0) items = items.concat([`defenders: ${Math.round(defenders)}`])
+                    if (attackers > 0) items = items.concat([`attackers: ${Math.round(attackers)}`])
+                }
+                regionMarkers[region.Id]?.unbindPopup()
+                regionMarkers[region.Id]?.bindPopup(
+                    mkUnumberedList(items)
+                )
+            }
+            // Set popups for airfields: storage and planes
+            for (const airfield of world.Airfields) {
+                const planes = Math.trunc(sum(valuesOf(dayData.Planes[airfield.Id])) ?? 0)
+                const storage = Math.round(easy.capacityAtAirfield(airfield.Id))
+                airfieldMarkers[airfield.Id]?.unbindPopup().bindPopup(
+                    mkUnumberedList(
+                        [
+                            `storage: ${storage} m^3`,
+                            `planes: ${planes}`
+                        ]
+                    )
+                )
+            }
         }
         // Populate list of events
         if (dayEvents != null) {

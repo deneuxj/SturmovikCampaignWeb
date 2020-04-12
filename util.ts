@@ -34,3 +34,14 @@ function valuesOf<T>(dict : Dict<T> | null | undefined): T[] {
 function sum(xs: number[]) {
     return xs.reduce((x, y) => x + y, 0)
 }
+
+function mkUnumberedList(items: string[]) {
+    const ul = document.createElement("ul")
+    for (const item of items) {
+        const li = document.createElement("li")
+        const txt = document.createTextNode(item)
+        li.appendChild(txt)
+        ul.appendChild(li)
+    }
+    return ul
+}

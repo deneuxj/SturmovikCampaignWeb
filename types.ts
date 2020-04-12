@@ -3,6 +3,13 @@
 // -------- Types: SturmovikCampaign's WebController
 type Coalition = "Allies" | "Axis"
 
+function otherCoalition(coalition: Coalition) {
+    switch(coalition) {
+        case "Allies": return "Axis"
+        case "Axis": return "Allies"
+    }
+}
+
 interface Vector2 {
     X: number
     Y: number
@@ -386,5 +393,68 @@ class RegionWithOwner {
             return "blue"
         else
             return "gray"
+    }
+}
+
+class EasyWarState {
+    world: World
+    state: WarState
+    buildingStatus: Dict<BuildingStatus>
+    regions: Dict<Region>
+    groundForces: Dict<number>
+    airfields: Dict<Airfield>
+
+    constructor(world: World, state: WarState) {
+        this.world = world
+        this.state = state
+        this.buildingStatus = {}
+        for (const status of state.BuildingHealth) {
+            const key = JSON.stringify(status.Position)
+            this.buildingStatus[key] = status
+        }
+        this.regions = {}
+        for (const r of world.Regions) {
+            this.regions[r.Id] = r
+        }
+        this.groundForces = {}
+        for (const gf of state.GroundForces) {
+            const key = JSON.stringify({
+                region: gf.Region,
+                coalition: gf.Coalition
+            })
+            this.groundForces[key] = gf.Forces
+        }
+        this.airfields = {}
+        for (const af of world.Airfields) {
+            this.airfields[af.Id] = af
+        }
+    }
+
+    public capacityInBuildings(buildings: BuildingInstance[]) {
+        const res =
+            buildings
+            .map(b =>
+                {
+                    const capacity = this.world.BuildingProperties[b.PropertiesId].Capacity ?? 0
+                    const level = this.buildingStatus[JSON.stringify(b.Position)]?.FunctionalityLevel ?? 1.0
+                    return level * capacity
+                })
+        return sum(res ?? [])
+    }
+
+    public capacityInRegion(regionId: string) {
+        return this.capacityInBuildings(this.regions[regionId]?.Buildings ?? [])
+    }
+
+    public capacityAtAirfield(airfieldId: string) {
+        return this.capacityInBuildings(this.airfields[airfieldId]?.Buildings ?? [])
+    }
+
+    public groundForcesInRegion(regionId: string, coalition: Coalition) {
+        const key = JSON.stringify({
+            region: regionId,
+            coalition: coalition
+        })
+        return this.groundForces[key] ?? 0
     }
 }
