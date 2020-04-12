@@ -39,7 +39,8 @@ class BorderRenderer {
 // Site-dependent configuration
 const config = {
     campaignServerUrl: "http://127.0.0.1:8080",
-    tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png"
+    tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
+    iconUrl: "https://il2missionplanner.com/img/"
 }
 
 const dataSource = new WebDataSource(config.campaignServerUrl)
@@ -98,7 +99,7 @@ const graphDiv = document.getElementById("visualization")
 const btnRun = document.getElementById("btn-run")
 const btnStep = document.getElementById("btn-step")
 
-// The tile of the map, using il2missionplanner
+// The tiles of the map, using il2missionplanner.com
 const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
     {
         tms: true,
@@ -110,8 +111,39 @@ const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
     })
 mapTiles.addTo(map)
 
+function plannerIcon(filename: string, iconSize: [number, number]) {
+    return L.icon({
+        iconUrl: config.iconUrl + filename,
+        iconSize: iconSize,
+        iconAnchor: [iconSize[0]/2, iconSize[1]/2],
+        popupAnchor: [1 + iconSize[0]/2, 1 + iconSize[1]/2]
+    })
+}
+
+function plannerIconRE(color: "red" | "black" | "blue", basename: string) {
+    return plannerIcon(`${color}-re-${basename}.png`, [35, 35])
+}
+
+// Icons, also using il2missionplanner.com
+const icons = {
+    city: {
+        red: plannerIconRE("red", "point"),
+        blue: plannerIconRE("blue", "point"),
+        black: plannerIconRE("blue", "point")
+    },
+    airfield: {
+        red: plannerIconRE("red", "af"),
+        blue: plannerIconRE("blue", "af"),
+        black: plannerIconRE("black", "af")
+    }
+}
+
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
+
+let regionMarkers: Dict<L.Marker> = {}
+
+let airfieldMarkers: Dict<L.Marker> = {}
 
 // Get world data: Static information about regions, airfields...
 async function getWorldData() {
@@ -135,12 +167,27 @@ async function getWorldData() {
     else {
         console.error(`Bounds for map '${mapName}' are unknown`)
     }
+    regionMarkers = {}
+    let regions: Dict<Region> = {}
     for (let i = 0; i < world.Regions.length; i++) {
         const region = world.Regions[i];
+        regions[region.Id] = region
         let m = L.marker(transform(region.Position), {
             title: region.Id,
-            alt: `Region ${region.Id}`
+            alt: `Region ${region.Id}`,
+            icon: region.InitialOwner == "Allies" ? icons.city.red : icons.city.blue
         }).addTo(map)
+        regionMarkers[region.Id] = m
+    }
+    airfieldMarkers = {}
+    for (const airfield of world.Airfields) {
+        let owner = regions[airfield.Region]?.InitialOwner
+        let m = L.marker(transform(airfield.Position), {
+            title: airfield.Id,
+            alt: `Airfield ${airfield.Id}`,
+            icon: owner == "Allies" ? icons.airfield.red : icons.airfield.blue
+        }).addTo(map)
+        airfieldMarkers[airfield.Id] = m
     }
     return world
 }
