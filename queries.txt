@@ -1,6 +1,11 @@
-PUT http://127.0.0.1:8080/control/reset
+POST http://127.0.0.1:8080/control/reset
+Authorization: Basic admin:qwerty
 
-PUT http://127.0.0.1:8080/control/advance
+POST http://127.0.0.1:8080/control/advance
+Authorization: Basic admin:qwerty
+
+POST http://127.0.0.1:8080/control/run
+Authorization: Basic admin:qwerty
 
 GET http://127.0.0.1:8080/query/world
 
@@ -8,6 +13,24 @@ GET http://127.0.0.1:8080/query/current
 
 GET http://127.0.0.1:8080/query/dates
 
-GET http://127.0.0.1:8080/query/past/1
+GET http://127.0.0.1:8080/query/past/2
 
 GET http://127.0.0.1:8080/query/simulation/2
+
+POST http://127.0.0.1:8080/control/sync/once
+Authorization: Basic admin:qwerty
+
+POST http://127.0.0.1:8080/control/sync/loop
+Authorization: Basic admin:qwerty
+
+POST http://127.0.0.1:8080/control/sync/stop
+Authorization: Basic admin:qwerty
+
+GET http://127.0.0.1:8080/query/sync/state
+
+POST http://127.0.0.1:8080/admin/set-password
+
+{
+    "User": "admin",
+    "Password": "qwerty"
+}
