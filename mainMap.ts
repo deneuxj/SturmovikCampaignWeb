@@ -5,6 +5,7 @@
 /// <reference path="./types.ts" />
 /// <reference path="./dataSource.ts" />
 /// <reference path="./sampleData.ts" />
+/// <reference path="./config.ts" />
 
 // Signature of functions to draw polylines using the game's coordinate system
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
@@ -34,13 +35,6 @@ class BorderRenderer {
             this.drawPolyLine(vertices, color)
         }
     }
-}
-
-// Site-dependent configuration
-const config = {
-    campaignServerUrl: "http://127.0.0.1:8080",
-    tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
-    iconUrl: "https://il2missionplanner.com/img/"
 }
 
 const dataSource = new WebDataSource(config.campaignServerUrl)
@@ -96,8 +90,6 @@ const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
 const propertiesCell = document.getElementById("col-properties")
 const graphDiv = document.getElementById("visualization")
-const btnRun = document.getElementById("btn-run")
-const btnStep = document.getElementById("btn-step")
 
 // The tiles of the map, using il2missionplanner.com
 const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
@@ -598,11 +590,6 @@ map.on("load", async() => {
 // Debug: show leaflet coordinates when clicking on the map
 map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
-})
-
-btnStep?.addEventListener("click", async () => {
-    const response = await fetch(config.campaignServerUrl + "/control/advance", { method: "PUT" })
-    console.debug(response)
 })
 
 map.fitWorld()

@@ -28,44 +28,44 @@
             <legend>Send command</legend>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="reset">
+                    <input type="radio" id="input-reset" name="radio-control" value="reset">
                     Reset campaign
                 </label>
                 <input type="text" class="form-control" name="campaign-scenario" id="input-argument" value="RheinlandSummer">
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="advance">
+                    <input type="radio" id="input-advance" name="radio-control" value="advance">
                     Force advance (1 step)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="run">
+                    <input type="radio" id="input-run" name="radio-control" value="run">
                     Force advance (multiple steps)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="sync/loop">
+                    <input type="radio" id="input-loop" name="radio-control" value="sync/loop">
                     Start synchronization loop
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="sync/once">
+                    <input type="radio" id="input-once" name="radio-control" value="sync/once">
                     Start synchronization loop (one round)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="sync/stop">
+                    <input type="radio" id="input-stop" name="radio-control" value="sync/stop">
                     Stop after mission ends
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" name="radio-control" value="sync/interrupt">
+                    <input type="radio" id="input-interrupt" name="radio-control" value="sync/interrupt">
                     Stop now
                 </label>
             </div>
@@ -90,6 +90,16 @@
             </div>
         </div>
     </div>
+
+    <script src="/js/require.min.js"></script>
+    <script src="/js/lib/utf8/utf8.js"></script>
+    <script src="/js/lib/base-64/base64.js"></script>
+    <script src="/js/config.js"></script>
+    <script type="module">
+        import {setup} from '/js/mainControl.js';
+        setup();
+    </script>
+    
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
