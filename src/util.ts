@@ -8,7 +8,9 @@ function dig2(n: number): string {
 }
 
 // Remove all children from an HTML element
-function removeAllChildren(elmt : HTMLElement) {
+function removeAllChildren(elmt : HTMLElement | null) {
+    if (elmt == null)
+        return
     while (elmt.lastChild != null) {
         elmt.removeChild(elmt.lastChild)
     }
