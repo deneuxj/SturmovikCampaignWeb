@@ -45,3 +45,30 @@ function mkUnumberedList(items: string[]) {
     }
     return ul
 }
+
+// Create a spinner and add it to the children of a parent node
+function addSpinner(parent: HTMLElement | null) {
+    if (parent == null)
+        return
+    const spinner = document.createElement("div")
+    spinner.setAttribute("class", "spinner-border")
+    spinner.setAttribute("role", "status")
+    spinner.setAttribute("id", "spinner")
+    console.debug(parent)
+    parent.appendChild(spinner)
+    console.debug(parent.children)
+    console.debug(spinner)
+}
+
+// Remove spinner(s) previously added by addSpinner
+function removeSpinner(parent : HTMLElement | null) {
+    if (parent == null)
+        return
+
+    for (const child of parent.children) {
+        if (child.getAttribute("id") == "spinner") {
+            console.debug(child)
+            parent.removeChild(child)
+        }
+    }
+}

@@ -1,11 +1,13 @@
 /// <reference types="bootstrap" />
 /// <reference path="./config.ts" />
+/// <reference path="./util.ts" />
 
 // Various HTML elements to hook on
 const inputPassword = document.getElementById("input-password") as HTMLInputElement
 const inputArgument = document.getElementById("input-argument") as HTMLInputElement
 const radioControls = document.getElementsByName("radio-control")
 const btnSubmit = document.getElementById("btn-submit")
+const paraResult = document.getElementById("p-result")
 
 btnSubmit?.addEventListener("click", async () => {
     const password = inputPassword?.value
@@ -24,6 +26,7 @@ btnSubmit?.addEventListener("click", async () => {
 
     // }
 
+    addSpinner(paraResult)
     const headers = new Headers()
     headers.append("Authorization", "Basic " + btoa("admin:" + password))
     const response = await fetch(config.campaignServerUrl + command,
@@ -32,4 +35,6 @@ btnSubmit?.addEventListener("click", async () => {
             headers: headers
         })
     console.debug(response)
+
+    removeSpinner(paraResult)
 })
