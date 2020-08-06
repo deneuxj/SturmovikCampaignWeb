@@ -26,6 +26,7 @@ btnSubmit?.addEventListener("click", async () => {
 
     // }
 
+    removeAllChildren(paraResult)
     addSpinner(paraResult)
     const headers = new Headers()
     headers.append("Authorization", "Basic " + btoa("admin:" + password))
@@ -35,6 +36,19 @@ btnSubmit?.addEventListener("click", async () => {
             headers: headers
         })
     console.debug(response)
-
     removeSpinner(paraResult)
+    if (response.status == 200) {
+        const message = await response.json()
+        console.debug(message)
+        paraResult?.appendChild(document.createTextNode("OK " + message.Value))
+    }
+    else if (response.status == 409) {
+        const message = await response.text()
+        console.debug(message)
+        paraResult?.appendChild(document.createTextNode("Error " + message))
+    }
+    else {
+        paraResult?.appendChild(document.createTextNode(response.statusText))
+    }
+
 })
