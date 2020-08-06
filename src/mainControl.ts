@@ -9,6 +9,9 @@ const radioControls = document.getElementsByName("radio-control")
 const btnSubmit = document.getElementById("btn-submit")
 const paraResult = document.getElementById("p-result")
 
+const btnRefresh = document.getElementById("btn-refresh")
+const paraStatus = document.getElementById("p-status")
+
 btnSubmit?.addEventListener("click", async () => {
     const password = inputPassword?.value
     var command = "/query/sync/state"
@@ -51,4 +54,12 @@ btnSubmit?.addEventListener("click", async () => {
         paraResult?.appendChild(document.createTextNode(response.statusText))
     }
 
+})
+
+btnRefresh?.addEventListener("click", async () => {
+    var command = "/query/sync/state"
+    const response = await fetch(config.campaignServerUrl + command)
+    const message = await response.json()
+    removeAllChildren(paraStatus)
+    paraStatus?.appendChild(document.createTextNode(message.Value))
 })
