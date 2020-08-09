@@ -24,10 +24,10 @@ btnSubmit?.addEventListener("click", async () => {
 
     console.info(command)
 
-    // var content = ""
-    // if (command === "/control/reset") {
-
-    // }
+    var content = ""
+    if (command === "/control/reset") {
+        content = JSON.stringify({ Scenario: inputArgument.value })
+    }
 
     removeAllChildren(paraResult)
     addSpinner(paraResult)
@@ -36,7 +36,8 @@ btnSubmit?.addEventListener("click", async () => {
     const response = await fetch(config.campaignServerUrl + command,
         {
             method: 'POST',
-            headers: headers
+            headers: headers,
+            body: content
         })
     console.debug(response)
     removeSpinner(paraResult)
