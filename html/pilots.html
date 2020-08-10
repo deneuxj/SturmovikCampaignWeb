@@ -19,7 +19,42 @@
         </li>
     </ul>
 
-    
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <select class="form-control" id="select-country">
+                    <option value="">All countries</option>
+                    <option value="Germany">Germany</option>
+                    <option value="Italy">Italy</option>
+                    <option value="Russia">USSR</option>
+                    <option value="UnitedStates">USA</option>
+                    <option value="GreatBritain">UK</option>
+                </select>    
+            </div>
+            <div class="col">
+                <select class="form-control" id="select-coalition">
+                    <option value="">All coalitions</option>
+                    <option value="Axis">Axis</option>
+                    <option value="Allies">Allies</option>
+                </select>    
+            </div>
+            <div class="col">
+                <select class="form-control" id="select-health">
+                    <option value="">Any health</option>
+                    <option value="OnlyHealthy">Healthy</option>
+                    <option value="NoDead">Not dead</option>
+                </select>    
+            </div>
+            <div class="col">
+                <input class="form-control" type="text" id="input-name" placeholder="John">
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary" id="btn-filter">Filter</button>
+            </div>
+        </div>
+
+        </div>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -38,6 +73,7 @@
 
         </tbody>
     </table>
+
     <script src="/js/util.js"></script>
     <script src="/js/types.js"></script>
     <script src="/js/dataSource.js"></script>

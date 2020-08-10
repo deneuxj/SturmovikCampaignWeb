@@ -70037,7 +70037,7 @@ class SampleDataSource implements DataSource {
           RankAbbrev: "FO",
           FirstName: "John",
           LastName: "Dead",
-          Country: "UnitedStates",
+          Country: "GreatBritain",
           PlayerName: "coconut",
           Health: "Dead",
           Flights: 20,
@@ -70062,6 +70062,18 @@ class SampleDataSource implements DataSource {
             },
           Flights: 2,
           AirKills: 1
+        },
+        {
+          Id: 4,
+          Rank: "Oberleutnant",
+          RankAbbrev: "OL",
+          FirstName: "Herman",
+          LastName: "Mueller",
+          Country: "Germany",
+          PlayerName: "coconut",
+          Health: "Healthy",
+          Flights: 25,
+          AirKills: 10
         },
       ]
     constructor() {
