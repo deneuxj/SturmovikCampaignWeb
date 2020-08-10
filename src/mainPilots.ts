@@ -21,7 +21,9 @@ function healthString(health : HealthStatus) {
 
 async function fetchPilots(filter : PilotSearchFilter | null) {
     removeAllChildren(tablePilots)
+    addSpinner(btnFilter)
     const results = await dataSource.getPilots(filter)
+    removeSpinner(btnFilter)
     if (results) {
         for (const pilot of results) {
             tablePilots?.insertAdjacentHTML("beforeend",
