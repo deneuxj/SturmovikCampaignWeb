@@ -45,4 +45,28 @@ class WebDataSource implements DataSource {
         const simData = await responseSim.json() as SimulationStep[]
         return simData
     }
+
+    async getPilots(health: "OnlyHealthy" | "NoDead" | null, coalition: string | null, country: string | null, namePattern: string | null) {
+        var params = []
+        if (health) {
+            params.push("health=" + health)
+        }
+        if (coalition) {
+            params.push("coalition=" + encodeURIComponent(coalition))
+        }
+        if (country) {
+            params.push("country=" + encodeURIComponent(country))
+        }
+        if (namePattern) {
+            params.push("name=" + encodeURIComponent(namePattern))
+        }
+        var url = this.url + "/query/pilots"
+        if (params.length > 0)
+            url = url + "?" + params.join("&")
+        const response = await fetch(url)
+        if (!response.ok)
+            return null
+        const pilots = await response.json() as Pilot[]
+        return pilots
+    }
 }

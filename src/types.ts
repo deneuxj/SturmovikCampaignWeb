@@ -128,6 +128,25 @@ interface WarState {
     Weather: any
 }
 
+interface Injured {
+    Until: DateTime
+}
+
+type HealthStatus = "Healthy" | "Dead" | Injured
+
+interface Pilot {
+    Id : number
+    Rank : string
+    RankAbbrev : string
+    FirstName : string
+    LastName : string
+    Country : string
+    PlayerName : string
+    Health : HealthStatus
+    Flights : number
+    AirKills : number
+}
+
 // 
 // Commands
 //
