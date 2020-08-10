@@ -70017,6 +70017,53 @@ class SampleDataSource implements DataSource {
           ]
       ]
 
+    pilots: Pilot[] =
+      [
+        {
+          Id: 1,
+          Rank: "Flight Officer",
+          RankAbbrev: "FO",
+          FirstName: "John",
+          LastName: "Doe",
+          Country: "UnitedStates",
+          PlayerName: "coconut",
+          Health: "Healthy",
+          Flights: 2,
+          AirKills: 1
+        },
+        {
+          Id: 2,
+          Rank: "Flight Officer",
+          RankAbbrev: "FO",
+          FirstName: "John",
+          LastName: "Dead",
+          Country: "UnitedStates",
+          PlayerName: "coconut",
+          Health: "Dead",
+          Flights: 20,
+          AirKills: 15
+        },
+        {
+          Id: 3,
+          Rank: "Flight Officer",
+          RankAbbrev: "FO",
+          FirstName: "John",
+          LastName: "BooBoo",
+          Country: "UnitedStates",
+          PlayerName: "coconut",
+          Health: {
+              Until: {
+                Year: 1945,
+                Month: 12,
+                Day: 24,
+                Hour: 0,
+                Minute: 0
+              }
+            },
+          Flights: 2,
+          AirKills: 1
+        },
+      ]
     constructor() {
     }
 
@@ -70034,5 +70081,25 @@ class SampleDataSource implements DataSource {
 
     async getSimulationSteps(idx: number) {
         return this.simSteps[idx] ?? null
+    }
+
+    async getPilots(filter: PilotSearchFilter | null) {
+      var result: Pilot[] = []
+      for (const pilot of this.pilots) {
+        var ok = true
+        if (ok && filter?.Health === "OnlyHealthy") {
+          ok = pilot.Health === "Healthy"
+        }
+        if (ok && filter?.Health === "NoDead") {
+          ok = pilot.Health != "Dead"
+        }
+        if (ok && filter?.Country) {
+          ok = pilot.Country === filter.Country
+        }
+        if (ok) {
+          result.push(pilot)
+        }
+      }
+      return result
     }
 }

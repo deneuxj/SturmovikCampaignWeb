@@ -1,10 +1,18 @@
 /// <reference path="./types.ts" />
 
+interface PilotSearchFilter {
+    Health: "OnlyHealthy" | "NoDead" | null
+    Coalition: string | null
+    Country: string | null
+    NamePattern: string | null
+}
+
 interface DataSource {
     getWorld(): Promise<World | null>
     getDates(): Promise<DateTime[] | null>
     getState(idx: number): Promise<WarState | null>
     getSimulationSteps(idx: number): Promise<SimulationStep[] | null>
+    getPilots(filter: PilotSearchFilter | null): Promise<Pilot[] | null>
 }
 
 class WebDataSource implements DataSource {
@@ -46,19 +54,19 @@ class WebDataSource implements DataSource {
         return simData
     }
 
-    async getPilots(health: "OnlyHealthy" | "NoDead" | null, coalition: string | null, country: string | null, namePattern: string | null) {
+    async getPilots(filter: PilotSearchFilter | null) {
         var params = []
-        if (health) {
-            params.push("health=" + health)
+        if (filter?.Health) {
+            params.push("health=" + filter.Health)
         }
-        if (coalition) {
-            params.push("coalition=" + encodeURIComponent(coalition))
+        if (filter?.Coalition) {
+            params.push("coalition=" + encodeURIComponent(filter.Coalition))
         }
-        if (country) {
-            params.push("country=" + encodeURIComponent(country))
+        if (filter?.Country) {
+            params.push("country=" + encodeURIComponent(filter.Country))
         }
-        if (namePattern) {
-            params.push("name=" + encodeURIComponent(namePattern))
+        if (filter?.NamePattern) {
+            params.push("name=" + encodeURIComponent(filter.NamePattern))
         }
         var url = this.url + "/query/pilots"
         if (params.length > 0)

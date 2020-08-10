@@ -6,6 +6,7 @@
 /// <reference path="./dataSource.ts" />
 /// <reference path="./sampleData.ts" />
 /// <reference path="./config.ts" />
+/// <reference path="./common.ts" />
 
 // Signature of functions to draw polylines using the game's coordinate system
 type DrawPolyLineFun = (vs: Vector2[], color: string) => void
@@ -123,9 +124,6 @@ class BorderRenderer {
         }
     }
 }
-
-const dataSource = new WebDataSource(config.campaignServerUrl)
-//const dataSource = new SampleDataSource()
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
