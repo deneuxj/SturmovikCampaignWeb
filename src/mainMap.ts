@@ -135,6 +135,8 @@ function getMapBounds(mapName: string) {
     switch(mapName) {
         case "rheinland-summer": return bounds.rheinland;
         case "rheinland-winter": return bounds.rheinland;
+        case "rheinland-autumn": return bounds.rheinland;
+        case "rheinland-spring": return bounds.rheinland;
         default: return undefined;
     }
 }
