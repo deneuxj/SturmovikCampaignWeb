@@ -35,7 +35,10 @@ jobs:
         packageManager: npm # optional, default is auto
         # If true and node_modules folder already exists, this action will be skipped assuming npm install is not required.
         skipIfNodeModulesExists: false # optional, default is false
-    
+
+    - name: install typescript
+      run: /usr/local/bin/npm install typescript
+      
     - name: Typescript compiler
     # You may pin to the exact commit or the version.
     # uses: iCrawl/action-tsc@c3f25c126c7805dbbbcbf6f1db0c3be6f5dac069
