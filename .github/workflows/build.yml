@@ -1,0 +1,52 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: npm/yarn/pnpm install
+      # You may pin to the exact commit or the version.
+      # uses: Jaid/action-npm-install@9483da054882538350947c4147de4c8adbf0d597
+      uses: Jaid/action-npm-install@v1.2.4
+      with:
+        # NODE_ENV setting for installing execution (affects the amount of dependencies installed, but I would recommend keeping development in any case).
+        # nodeEnv: # optional, default is development
+        # Can be "npm", "yarn", "pnpm" or "auto". "auto" will determine the package manager by looking into the repo's files. This is very accurate, so you normally don't want to change this.
+        packageManager: npm # optional, default is auto
+        # If true and node_modules folder already exists, this action will be skipped assuming npm install is not required.
+        skipIfNodeModulesExists: false # optional, default is false
+    
+    - name: Typescript compiler
+    # You may pin to the exact commit or the version.
+    # uses: iCrawl/action-tsc@c3f25c126c7805dbbbcbf6f1db0c3be6f5dac069
+      uses: iCrawl/action-tsc@v1
+      #with:
+        # Optional project path.
+        # project: # optional
+        # Optional build reference path.
+        # build: # optional
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: web-image
+        path: |
+          html
+          js
