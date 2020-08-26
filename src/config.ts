@@ -1,6 +1,6 @@
 // Site-dependent configuration
 const config = {
-    campaignServerUrl: "http://127.0.0.1:8080",
+    campaignServerUrl: window.location.protocol + "//" + window.location.hostname + ":" + window.location.port,
     tilesUrlTemplate: "https://tiles.il2missionplanner.com/rheinland/{z}/{x}/{y}.png",
     iconUrl: "https://il2missionplanner.com/img/"
 }
