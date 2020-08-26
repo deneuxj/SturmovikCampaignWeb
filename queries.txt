@@ -27,10 +27,3 @@ POST http://127.0.0.1:8080/control/sync/stop
 Authorization: Basic admin:qwerty
 
 GET http://127.0.0.1:8080/query/sync/state
-
-POST http://127.0.0.1:8080/admin/set-password
-
-{
-    "User": "admin",
-    "Password": "qwerty"
-}
