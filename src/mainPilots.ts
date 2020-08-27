@@ -16,7 +16,7 @@ const inpName = document.getElementById("input-name") as HTMLInputElement
 function healthString(health : HealthStatus) {
     if (health == "Healthy") return "Healthy"
     if (health == "Dead") return "Dead"
-    return `Injured until ${dateToStr(health.Until)}`
+    return `Injured until ${dateToStr(health.Injured.Until)}`
 }
 
 async function fetchPilots(filter : PilotSearchFilter | null) {

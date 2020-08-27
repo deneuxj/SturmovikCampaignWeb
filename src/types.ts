@@ -128,8 +128,12 @@ interface WarState {
     Weather: any
 }
 
-interface Injured {
+interface InjuredUntil {
     Until: DateTime
+}
+
+interface Injured {
+    Injured: InjuredUntil
 }
 
 type HealthStatus = "Healthy" | "Dead" | Injured

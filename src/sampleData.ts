@@ -70052,12 +70052,14 @@ class SampleDataSource implements DataSource {
           Country: "UnitedStates",
           PlayerName: "coconut",
           Health: {
-              Until: {
-                Year: 1945,
-                Month: 12,
-                Day: 24,
-                Hour: 0,
-                Minute: 0
+              Injured: {
+                Until: {
+                  Year: 1945,
+                  Month: 12,
+                  Day: 24,
+                  Hour: 0,
+                  Minute: 0
+                }
               }
             },
           Flights: 2,
