@@ -343,7 +343,7 @@ function fetchDayData(world: World, idx: number) {
         // Populate list of events
         if (dayEvents != null) {
             removeAllChildren(dayEvents)
-            const dayActions = await dataSource.getSimulationSteps(idx + 1)
+            const dayActions = await dataSource.getSimulationSteps(idx)
             if (dayActions != null) {
                 let isSecondary = false
                 for (const action of dayActions) {
@@ -435,7 +435,7 @@ async function buildGraph(world: World, dates: DateTime[]) {
         const data = await dataSource.getState(i)
         if (data == null)
             continue
-        const simData = await dataSource.getSimulationSteps(i + 1)
+        const simData = await dataSource.getSimulationSteps(i)
         if (simData == null)
             continue
         states.push(data)
