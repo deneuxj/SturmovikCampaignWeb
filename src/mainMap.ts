@@ -141,34 +141,10 @@ function getMapBounds(mapName: string) {
     }
 }
 
-// A constructor of a leaflet control to pick the day/date of the campaign step to display
-const pickDayControl = L.Control.extend({
-    onAdd: function(map: L.Map) {
-        const div = document.createElement("div")
-        div.setAttribute("class", "dropdown")
-        div.innerHTML =
-        `
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                YYYY-MM-DD HH:MM
-                <span class="caret"></span>
-            </button>
-            <div class="dropdown-menu" aria-labelledby="btn-days" id="list-days">
-            </div>`
-        return div
-    },
-    onRemove: function() {
-
-    }
-})
-
 // The leaflet map
 let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
-
-// The control to pick the day/date to display
-const pickDay = new pickDayControl()
-pickDay.addTo(map)
 
 // The layers of the data of the day on the map
 let daysPolys: L.Polyline[] = []
@@ -176,7 +152,7 @@ let daysPolys: L.Polyline[] = []
 // Various HTML elements to hook on
 const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
-const propertiesCell = document.getElementById("col-properties")
+const propertiesCell = document.getElementById("event-details")
 const graphDiv = document.getElementById("visualization")
 
 // The tiles of the map, using il2missionplanner.com

@@ -24,23 +24,19 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col" style="width: 800px; height: 800px;">
-                <div id="mapid" style="width: 800px; height: 800px;"></div>
-            </div>
-            <div class="col">
-                <div class="overflow-auto" style="height: 800px;">
-                    <ul class="list-group" id="list-events">
-                    </ul>
-                </div>
+            <div id="mapid" style="width: 75%; height: 600px;"></div>
+            <div>
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    YYYY-MM-DD HH:MM
+                    <span class="caret"></span>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="btn-days" style="max-height: 400px; overflow: auto;" id="list-days"></div>
+                <ul id="list-events" style="max-height: 500px; width: 350px; overflow: auto;"></ul>
             </div>
         </div>
         <div class="row">
-            <div class="col" id="col-graph">
-                <div id="visualization" style="width: 800; height: 300;"></div>
-            </div>
-            <div class="col" id="col-properties">
-
-            </div>
+            <div id="visualization" style="width: 75%; height: 400px;"></div>
+            <div id="event-details" style="height: 400px;"></div>
         </div>
     </div>
 
