@@ -28,7 +28,6 @@ async function fetchPilots(filter : PilotSearchFilter | null) {
         for (const pilot of results) {
             tablePilots?.insertAdjacentHTML("beforeend",
                 `<tr>
-                    <td>${pilot.Id}</td>
                     <td>${pilot.RankAbbrev}</td>
                     <td>${pilot.FirstName}</td>
                     <td>${pilot.LastName}</td>

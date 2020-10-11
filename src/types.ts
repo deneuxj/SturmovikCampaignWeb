@@ -139,7 +139,7 @@ interface Injured {
 type HealthStatus = "Healthy" | "Dead" | Injured
 
 interface Pilot {
-    Id : number
+    Id : string
     Rank : string
     RankAbbrev : string
     FirstName : string

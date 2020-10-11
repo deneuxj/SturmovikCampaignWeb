@@ -70020,7 +70020,7 @@ class SampleDataSource implements DataSource {
     pilots: Pilot[] =
       [
         {
-          Id: 1,
+          Id: "1",
           Rank: "Flight Officer",
           RankAbbrev: "FO",
           FirstName: "John",
@@ -70032,7 +70032,7 @@ class SampleDataSource implements DataSource {
           AirKills: 1
         },
         {
-          Id: 2,
+          Id: "2",
           Rank: "Flight Officer",
           RankAbbrev: "FO",
           FirstName: "John",
@@ -70044,7 +70044,7 @@ class SampleDataSource implements DataSource {
           AirKills: 15
         },
         {
-          Id: 3,
+          Id: "3",
           Rank: "Flight Officer",
           RankAbbrev: "FO",
           FirstName: "John",
@@ -70066,7 +70066,7 @@ class SampleDataSource implements DataSource {
           AirKills: 1
         },
         {
-          Id: 4,
+          Id: "4",
           Rank: "Oberleutnant",
           RankAbbrev: "OL",
           FirstName: "Herman",
