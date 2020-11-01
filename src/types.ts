@@ -128,15 +128,21 @@ interface WarState {
     Weather: any
 }
 
-interface InjuredUntil {
+interface UntilDateTime {
     Until: DateTime
 }
 
 interface Injured {
-    Injured: InjuredUntil
+    Injured: UntilDateTime
 }
 
 type HealthStatus = "Healthy" | "Dead" | Injured
+
+function healthString(health : HealthStatus) {
+    if (health == "Healthy") return "Healthy"
+    if (health == "Dead") return "Dead"
+    return `Injured until ${dateToStr(health.Injured.Until)}`
+}
 
 interface Pilot {
     Id : string
@@ -149,6 +155,24 @@ interface Pilot {
     Health : HealthStatus
     Flights : number
     AirKills : number
+}
+
+interface Banned {
+    Banned: UntilDateTime
+}
+
+type BanStatus = "NotBanned" | Banned
+
+function banString(ban : BanStatus) {
+    if (ban == "NotBanned") return "Clear"
+    return `Banned until ${dateToStr(ban.Banned.Until)}`
+}
+
+interface Player {
+    Guid : string
+    Name : string
+    BanStatus : BanStatus
+    Pilots : Pilot[]
 }
 
 // 

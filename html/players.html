@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<head>
+    <title>Players</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+
+<body>
+    <ul class="nav nav-tabs justify-content-center">
+        <li class="nav-item">
+            <a class="nav-link" href="status.html">Server status</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="map.html">Campaign map</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="pilots.html">Pilots</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="players.html">Players</a>
+        </li>
+    </ul>
+
+    <center><h3>Players</h3></center>
+    <div id="list-players" style="display: 500px; overflow-y: auto;">
+    </div>
+
+    <center><h3>Selected player</h3></center>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                Nickname
+            </div>
+            <div id="div-nickname" class="col form-text"></div>
+        </div>
+        <div class="row">
+            <div class="col form-text">Previous nicknames</div>
+            <div id="div-prevnicks" class="col"></div>
+        </div>
+        <div class="row">
+            <div class="col-2 form-text">Ban status</div>
+            <div id="div-ban-status" class="col-2"></div>
+            <div class="col-1">
+                <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
+                <small id="help-ban" class="form-text text-muted">Days</small>
+            </div>
+            <div class="col-3">
+                <input id="input-password" class="form-control" type="password" aria-describedby="help-password"/>
+                <small id="help-password" class="form-text text-muted">Admin password</small>
+            </div>
+            <div class="col-4">
+                <button id="btn-ban" class="btn btn-primary">Ban</button>
+                <button id="btn-clear-ban" class="btn btn-secondary">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <center><h4>Pilots</h4></center>
+    <div id="list-pilots" style="height: 500px; overflow-y: auto;">
+    </div>
+
+    <center><h4>Flights</h4></center>
+    <div id="list-flights" style="height: 500px; overflow-y: auto;">
+    </div>
+
+    <center><h4>Flight events</h4></center>
+    <div id="list-events" style="height: 500px; overflow-y: auto;">
+    </div>
+
+    <script src="/js/util.js"></script>
+    <script src="/js/types.js"></script>
+    <script src="/js/dataSource.js"></script>
+    <script src="/js/sampleData.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/mainPlayers.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>

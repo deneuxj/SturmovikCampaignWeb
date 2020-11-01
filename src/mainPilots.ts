@@ -13,12 +13,6 @@ const selCoalition = document.getElementById("select-coalition") as HTMLSelectEl
 const selHealth = document.getElementById("select-health") as HTMLSelectElement
 const inpName = document.getElementById("input-name") as HTMLInputElement
 
-function healthString(health : HealthStatus) {
-    if (health == "Healthy") return "Healthy"
-    if (health == "Dead") return "Dead"
-    return `Injured until ${dateToStr(health.Injured.Until)}`
-}
-
 async function fetchPilots(filter : PilotSearchFilter | null) {
     removeAllChildren(tablePilots)
     addSpinner(btnFilter)
