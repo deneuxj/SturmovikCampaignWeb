@@ -23,24 +23,26 @@
     </ul>
 
     <center><h3>Players</h3></center>
-    <div id="list-players" style="display: 500px; overflow-y: auto;">
+    <p>
+    <div id="list-players" class="container" style="display: 500px; overflow-y: auto;">
     </div>
+    </p>
 
-    <center><h3>Selected player</h3></center>
+    <p>
     <div class="container">
         <div class="row">
-            <div class="col">
+            <div class="col-4">
                 Nickname
             </div>
-            <div id="div-nickname" class="col form-text"></div>
+            <div id="div-nickname" class="col-8 form-text"></div>
         </div>
         <div class="row">
-            <div class="col form-text">Previous nicknames</div>
-            <div id="div-prevnicks" class="col"></div>
+            <div class="col-4 form-text">Other nicknames</div>
+            <div id="div-prevnicks" class="col-8"></div>
         </div>
         <div class="row">
             <div class="col-2 form-text">Ban status</div>
-            <div id="div-ban-status" class="col-2"></div>
+            <div id="div-ban-status" class="col-2 form-text"></div>
             <div class="col-1">
                 <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
                 <small id="help-ban" class="form-text text-muted">Days</small>
@@ -55,18 +57,59 @@
             </div>
         </div>
     </div>
+    </p>
 
+    <p>
     <center><h4>Pilots</h4></center>
-    <div id="list-pilots" style="height: 500px; overflow-y: auto;">
+    <div id="list-pilots" class="container" style="display: 500px; overflow-y: auto;">
     </div>
+    </p>
 
-    <center><h4>Flights</h4></center>
-    <div id="list-flights" style="height: 500px; overflow-y: auto;">
+    <p>
+    <center><h4>Selected pilot</h4></center>
+    <div class="container">
+        <div class="row">
+            <div class="col-4 form-text">
+                Name
+            </div>
+            <div id="div-pilot-name" class="col-8 form-text"></div>
+        </div>
+        <div class="row">
+            <div class="col-4 form-text">
+                Rank
+            </div>
+            <div id="div-pilot-rank" class="col-8 form-text"></div>
+        </div>
+        <div class="row">
+            <div class="col-4 form-text">
+                Air kills
+            </div>
+            <div id="div-pilot-kills" class="col-8 form-text"></div>
+        </div>
+        <div class="row">
+            <div class="col-4 form-text">
+                Country
+            </div>
+            <div id="div-pilot-country" class="col-8 form-text"></div>
+        </div>
+        <div class="row">
+            <div class="col-4 form-text">
+                Health
+            </div>
+            <div id="div-pilot-health" class="col-8 form-text"></div>
+        </div>
     </div>
+    <p>
+    <div id="list-flights" class="container" style="display: 500px; overflow-y: auto;">
+    </div>
+    </p>
+    </p>
 
-    <center><h4>Flight events</h4></center>
-    <div id="list-events" style="height: 500px; overflow-y: auto;">
+    <p>
+    <center><h4>Targets</h4></center>
+    <div id="list-events" class="container" style="display: 500px; overflow-y: auto;">
     </div>
+    </p>
 
     <script src="/js/util.js"></script>
     <script src="/js/types.js"></script>

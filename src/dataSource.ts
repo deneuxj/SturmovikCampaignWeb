@@ -86,4 +86,13 @@ class WebDataSource implements DataSource {
         const players = await response.json() as Player[]
         return players
     }
+
+    async getPilot(pilotId : string) {
+        var url = this.url + "/query/pilot/" + pilotId
+        const response = await fetch(url)
+        if (!response.ok)
+            return null
+        const pilot = await response.json() as PilotWithMissionRecords
+        return pilot
+    }
 }

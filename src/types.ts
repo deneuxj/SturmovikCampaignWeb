@@ -157,6 +157,99 @@ interface Pilot {
     AirKills : number
 }
 
+interface ShipTarget {
+    Ship : string
+}
+
+interface ArtilleryTarget {
+    Artillery : string
+}
+
+interface VehicleTarget {
+    Vehicle : string
+}
+
+interface ParkedPlaneTarget {
+    ParkedPlane : string
+}
+
+interface PlaneTarget {
+    Plane : string
+}
+
+interface BuildingTarget {
+    Building : string
+}
+
+interface BridgeTarget {
+    Bridge : string
+}
+
+type TargetType = ShipTarget | VehicleTarget | ArtilleryTarget | ParkedPlaneTarget | PlaneTarget | BuildingTarget | BridgeTarget
+
+function targetString(target : TargetType) {
+    if ("Ship" in target) {
+        return "Ship"
+    }
+    else if ("Artillery" in target) {
+        return "Artillery"
+    }
+    else if ("Vehicle" in target) {
+        return "Vehicle"
+    }
+    else if ("ParkedPlane" in target) {
+        return "ParkedPlane"
+    }
+    else if ("Building" in target) {
+        return "Building"
+    }
+    else if ("Bridge" in target) {
+        return "Bridge"
+    }
+    return target.Plane
+}
+
+interface DamagedTarget {
+    Amount : number
+    Ammo : string
+    Target : TargetType
+}
+
+interface LandedAtAirfieldReturnStatus {
+    LandedAtAirfield : string
+}
+
+type ReturnStatus = LandedAtAirfieldReturnStatus | "CrashedInFriendlyTerritory" | "CrashedInEnemyTerritory"
+
+function returnStatusString(status : ReturnStatus) {
+    switch (status) {
+        case "CrashedInEnemyTerritory":
+            return "Captured"
+    
+        case "CrashedInFriendlyTerritory":
+            return "Crash landed"
+            
+        default:
+            return `At ${status.LandedAtAirfield}`
+    }
+}
+
+interface MissionRecord {
+    StartAirfield : string
+    StartDate : DateTime
+    EndDate : DateTime
+    DamagedTargets : DamagedTarget[]
+    AirKills : number
+    ReturnStatus : ReturnStatus
+    Plane : string
+    PlaneHealth : number
+}
+
+interface PilotWithMissionRecords {
+    Pilot : Pilot
+    Missions : MissionRecord[]
+}
+
 interface Banned {
     Banned: UntilDateTime
 }
@@ -172,7 +265,7 @@ interface Player {
     Guid : string
     Name : string
     BanStatus : BanStatus
-    Pilots : Pilot[]
+    Pilots : string[]
 }
 
 // 
