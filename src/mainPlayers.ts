@@ -65,7 +65,7 @@ async function updatePlayers() {
                 const row = document.createElement("tr")
                 row.appendChild(createTextCol(`${dateToStr(flight.StartDate)} ${flight.StartAirfield}`))
                 row.appendChild(createTextCol(flight.Plane))
-                row.appendChild(createTextCol(`${flight.AirKills} air kills`))
+                row.appendChild(createTextCol(`${flight.AirKills}`))
                 row.appendChild(createTextCol(`${dateToStr(flight.EndDate)} ${returnStatusString(flight.ReturnStatus)}`))
                 row.appendChild(createTextCol(`${flight.PlaneHealth * 100}%`))
                 row.addEventListener("click", flightClicked(flight))
