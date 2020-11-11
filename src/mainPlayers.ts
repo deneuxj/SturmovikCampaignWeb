@@ -9,12 +9,6 @@
 async function updatePlayers() {
     const listPlayers = document.getElementById("list-players")
     const divNick = document.getElementById("div-nickname")
-    const divPrevNicks = document.getElementById("div-prevnicks")
-    const divBanStatus = document.getElementById("div-ban-status")
-    const inputDaysBan = document.getElementById("input-days-ban") as HTMLInputElement
-    const btnBan = document.getElementById("btn-ban") as HTMLButtonElement
-    const btnClear = document.getElementById("btn-clear-ban") as HTMLButtonElement
-    const inputPassword = document.getElementById("input-pwd") as HTMLInputElement
     const listPilots = document.getElementById("list-pilots")
     const listFlights = document.getElementById("list-flights")
     const listEvents = document.getElementById("list-events")
@@ -94,11 +88,6 @@ async function updatePlayers() {
             divNick?.appendChild(
                 document.createTextNode(player.Name)
             )
-            removeAllChildren(divPrevNicks)
-            removeAllChildren(divBanStatus)
-            divBanStatus?.appendChild(
-                document.createTextNode(banString(player.BanStatus))
-            )
             // List of pilots controlled by that player
             removeAllChildren(listPilots)
             for (const pilotId of player.Pilots) {
@@ -158,36 +147,6 @@ async function updatePlayers() {
             listPlayers?.appendChild(row)
         }
     }
-
-    btnBan?.addEventListener("click", async function() {
-        if (selectedPlayer) {
-            const days = inputDaysBan.valueAsNumber
-            const content = JSON.stringify({Days: days})
-            const url = dataSource.url + `/admin/${selectedPlayer.Guid}/ban`
-            const headers = new Headers()
-            const password = inputPassword.value ?? ""
-            headers.append("Authorization", "Basic " + btoa("admin:" + password))
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: headers,
-                body: content
-            })
-        }
-    })
-
-    btnClear?.addEventListener("click", async function() {
-        if (selectedPlayer) {
-            const url = dataSource.url + `/admin/${selectedPlayer.Guid}/ban`
-            const headers = new Headers()
-            const password = inputPassword.value ?? ""
-            headers.append("Authorization", "Basic " + btoa("admin:" + password))
-            const response = await fetch(url, {
-                method: 'DELETE',
-                headers: headers
-            })
-        }
-    })
-
 }
 
 window.addEventListener("load", updatePlayers)

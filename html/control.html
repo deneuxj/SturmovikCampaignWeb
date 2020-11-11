@@ -31,53 +31,65 @@
             <legend>Send command</legend>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-reset" name="radio-control" value="reset">
+                    <input type="radio" id="input-reset" name="radio-control" value="/control/reset">
                     Reset campaign
                 </label>
                 <input type="text" class="form-control" name="campaign-scenario" id="input-argument" value="Eindhoven">
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-advance" name="radio-control" value="advance">
+                    <input type="radio" id="input-advance" name="radio-control" value="/contro/advance">
                     Force advance (1 step)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-run" name="radio-control" value="run">
+                    <input type="radio" id="input-run" name="radio-control" value="/control/run">
                     Force advance (multiple steps)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-loop" name="radio-control" value="sync/loop">
+                    <input type="radio" id="input-loop" name="radio-control" value="/control/sync/loop">
                     Start synchronization loop
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-once" name="radio-control" value="sync/once">
+                    <input type="radio" id="input-once" name="radio-control" value="/control/sync/once">
                     Start synchronization loop (one round)
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-stop" name="radio-control" value="sync/stop">
+                    <input type="radio" id="input-stop" name="radio-control" value="/control/sync/stop">
                     Stop after mission ends
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-interrupt" name="radio-control" value="sync/interrupt">
+                    <input type="radio" id="input-interrupt" name="radio-control" value="/control/sync/interrupt">
                     Stop now
                 </label>
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-resolve" name="radio-control" value="resolve">
+                    <input type="radio" id="input-resolve" name="radio-control" value="/control/resolve">
                     Rebuild or retry mission
                 </label>
             </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" id="input-ban" name="radio-control" value="/admin/player/ban">
+                    Ban or clear player
+                </label>
+                <input type="text" class="form-control" name="input-player-name" id="input-player-name">
+                <button class="btn btn-secondary" id="btn-check-name">Check name</button>
+                <div class="form-text">Ban status</div>
+                <div id="div-ban-status" class="form-text"></div>
+                <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
+            </div>
+    
             <div class="form-group">
                 <label for="input-password">Admin password</label>
                 <input type="password" class="form-control" id="input-password">
@@ -108,6 +120,7 @@
 
     <script src="/js/util.js"></script>
     <script src="/js/config.js"></script>
+    <script src="/js/types.js"></script>
     <script src="/js/mainControl.js"></script>
     
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

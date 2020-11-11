@@ -24,51 +24,17 @@
 
     <center><h3>Players</h3></center>
     <p>
-        <div class="container">
-            <div class="row">
-                <div class="col-5" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Player name</th>
-                                <th scope="col">Ban status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-players">
-                        </tbody>
-                    </table>
-                </div>
-                <div class="col-7">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-4">
-                                Nickname
-                            </div>
-                            <div id="div-nickname" class="col-8 form-text"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4 form-text">Other nicknames</div>
-                            <div id="div-prevnicks" class="col-8"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-2 form-text">Ban status</div>
-                            <div id="div-ban-status" class="col-2 form-text"></div>
-                            <div class="col-1">
-                                <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
-                                <small id="help-ban" class="form-text text-muted">Days</small>
-                            </div>
-                            <div class="col-3">
-                                <input id="input-password" class="form-control" type="password" aria-describedby="help-password"/>
-                                <small id="help-password" class="form-text text-muted">Admin password</small>
-                            </div>
-                            <div class="col-4">
-                                <button id="btn-ban" class="btn btn-primary">Ban</button>
-                                <button id="btn-clear-ban" class="btn btn-secondary">Clear</button>
-                            </div>
-                        </div>
-                    </div>            
-                </div>
-            </div>
+        <div class="container" style="max-height: 300px; overflow-y: auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Player name</th>
+                        <th scope="col">Ban status</th>
+                    </tr>
+                </thead>
+                <tbody id="list-players">
+                </tbody>
+            </table>
         </div>
     </p>
 

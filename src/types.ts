@@ -261,8 +261,12 @@ function banString(ban : BanStatus) {
     return `Banned until ${dateToStr(ban.Banned.Until)}`
 }
 
-interface Player {
+interface HashedGuid {
     Guid : string
+}
+
+interface Player {
+    Guid : HashedGuid
     Name : string
     BanStatus : BanStatus
     Pilots : string[]
