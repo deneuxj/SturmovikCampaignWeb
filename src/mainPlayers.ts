@@ -16,14 +16,15 @@ async function updatePlayers() {
     const btnClear = document.getElementById("btn-clear-ban") as HTMLButtonElement
     const inputPassword = document.getElementById("input-pwd") as HTMLInputElement
     const listPilots = document.getElementById("list-pilots")
+    const listFlights = document.getElementById("list-flights")
+    const listEvents = document.getElementById("list-events")
 
     var selectedPlayer : Player | null = null
     var selectedPilot : Pilot | null = null
     var selectedFlight : MissionRecord | null = null
 
-    function createTextCol(size : string, text : string) {
-        const nameCol = document.createElement("div")
-        nameCol.className = `col-${size}`
+    function createTextCol(text : string) {
+        const nameCol = document.createElement("td")
         const content = document.createTextNode(text)
         nameCol.appendChild(content)
         return nameCol
@@ -36,16 +37,13 @@ async function updatePlayers() {
 
     function flightClicked(flight : MissionRecord) {
         return async function() {
-            const listEvents = document.getElementById("list-events")
-
             selectedFlight = flight
             removeAllChildren(listEvents)
             for (const ev of flight.DamagedTargets) {
-                const row = document.createElement("div")
-                row.className = "row"
-                row.appendChild(createTextCol("4", ev.Ammo))
-                row.appendChild(createTextCol("4", `${ev.Amount*100}%`))
-                row.appendChild(createTextCol("4", targetString(ev.Target)))
+                const row = document.createElement("tr")
+                row.appendChild(createTextCol(ev.Ammo))
+                row.appendChild(createTextCol(`${ev.Amount*100}%`))
+                row.appendChild(createTextCol(targetString(ev.Target)))
                 listEvents?.appendChild(row)
             }
         }
@@ -57,7 +55,6 @@ async function updatePlayers() {
             const divPilotKills = document.getElementById("div-pilot-kills")
             const divPilotCountry = document.getElementById("div-pilot-country")
             const divPilotHealth = document.getElementById("div-pilot-health")
-            const listFlights = document.getElementById("list-flights")
 
             selectedPilot = pilot
 
@@ -71,13 +68,12 @@ async function updatePlayers() {
             // Flights
             removeAllChildren(listFlights)
             for (const flight of flights) {
-                const row = document.createElement("div")
-                row.className = "row"
-                row.appendChild(createTextCol("3", `${dateToStr(flight.StartDate)} ${flight.StartAirfield}`))
-                row.appendChild(createTextCol("2", flight.Plane))
-                row.appendChild(createTextCol("2", `${flight.AirKills} air kills`))
-                row.appendChild(createTextCol("3", `${dateToStr(flight.EndDate)} ${returnStatusString(flight.ReturnStatus)}`))
-                row.appendChild(createTextCol("2", `${flight.PlaneHealth * 100}%`))
+                const row = document.createElement("tr")
+                row.appendChild(createTextCol(`${dateToStr(flight.StartDate)} ${flight.StartAirfield}`))
+                row.appendChild(createTextCol(flight.Plane))
+                row.appendChild(createTextCol(`${flight.AirKills} air kills`))
+                row.appendChild(createTextCol(`${dateToStr(flight.EndDate)} ${returnStatusString(flight.ReturnStatus)}`))
+                row.appendChild(createTextCol(`${flight.PlaneHealth * 100}%`))
                 row.addEventListener("click", flightClicked(flight))
                 listFlights?.appendChild(row)
             }
@@ -87,6 +83,12 @@ async function updatePlayers() {
     const playerClicked = function(player : Player) {
         return async function() {
             selectedPlayer = player
+            selectedPilot = null
+            selectedFlight = null
+            removeAllChildren(listPilots)
+            removeAllChildren(listFlights)
+            removeAllChildren(listEvents)
+        
             // Set player info box
             removeAllChildren(divNick)
             divNick?.appendChild(
@@ -103,30 +105,29 @@ async function updatePlayers() {
                 const pilotAndMissions = await dataSource.getPilot(pilotId)
                 if (pilotAndMissions) {
                     const pilot = pilotAndMissions.Pilot
-                    const entry = document.createElement("div")
-                    entry.className = "row"
+                    const entry = document.createElement("tr")
 
-                    const rankCol = createTextCol("1", pilot.RankAbbrev)
+                    const rankCol = createTextCol(pilot.RankAbbrev)
                     entry.appendChild(rankCol)
 
-                    const nameCol = createTextCol("3", `${pilot.FirstName} ${pilot.LastName}`)
+                    const nameCol = createTextCol(`${pilot.FirstName} ${pilot.LastName}`)
                     entry.appendChild(nameCol)
 
-                    const countryCol = createTextCol("2", pilot.Country)
+                    const countryCol = createTextCol(pilot.Country)
                     entry.appendChild(countryCol)
 
-                    const missionsCol = createTextCol("1", `${pilot.Flights}`)
+                    const missionsCol = createTextCol(`${pilot.Flights}`)
                     entry.appendChild(missionsCol)
 
-                    const killsCol = createTextCol("1", `${pilot.AirKills}`)
+                    const killsCol = createTextCol(`${pilot.AirKills}`)
                     entry.appendChild(killsCol)
 
-                    const healthCol = createTextCol("2", `${healthString(pilot.Health)}`)
+                    const healthCol = createTextCol(`${healthString(pilot.Health)}`)
                     entry.appendChild(healthCol)
 
                     const missions = pilotAndMissions.Missions
                     const lastMission = missions[missions.length - 1]
-                    const statusCol = createTextCol("2", `${returnStatusString(lastMission.ReturnStatus)}`)
+                    const statusCol = createTextCol(`${returnStatusString(lastMission.ReturnStatus)}`)
                     entry.appendChild(statusCol)
 
                     entry.addEventListener("click", pilotClicked(pilot, pilotAndMissions.Missions))
@@ -141,15 +142,20 @@ async function updatePlayers() {
     const players = await dataSource.getPlayers()
     if (players) {
         for (const player of players) {
-            const row = document.createElement("div")
-            row.className = "row"
-            const entry = document.createElement("div")
-            entry.className = "col-12"
-            entry.addEventListener("click", playerClicked(player))
-            const content = document.createTextNode(`${player.Name}`)
-            entry.appendChild(content)
-            row.appendChild(entry)
-            listPlayers?.appendChild(entry)
+            const row = document.createElement("tr")
+            
+            const playerName = document.createElement("td")
+            playerName.appendChild(document.createTextNode(`${player.Name}`))
+            playerName.addEventListener("click", playerClicked(player))
+            
+            const banStatus = document.createElement("td")
+            banStatus.appendChild(
+                document.createTextNode(banString(player.BanStatus))
+            )
+
+            row.appendChild(playerName)
+            row.appendChild(banStatus)
+            listPlayers?.appendChild(row)
         }
     }
 

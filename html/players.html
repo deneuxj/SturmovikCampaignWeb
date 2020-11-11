@@ -24,91 +24,137 @@
 
     <center><h3>Players</h3></center>
     <p>
-    <div id="list-players" class="container" style="display: 500px; overflow-y: auto;">
-    </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-5" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Player name</th>
+                                <th scope="col">Ban status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list-players">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-7">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-4">
+                                Nickname
+                            </div>
+                            <div id="div-nickname" class="col-8 form-text"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 form-text">Other nicknames</div>
+                            <div id="div-prevnicks" class="col-8"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2 form-text">Ban status</div>
+                            <div id="div-ban-status" class="col-2 form-text"></div>
+                            <div class="col-1">
+                                <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
+                                <small id="help-ban" class="form-text text-muted">Days</small>
+                            </div>
+                            <div class="col-3">
+                                <input id="input-password" class="form-control" type="password" aria-describedby="help-password"/>
+                                <small id="help-password" class="form-text text-muted">Admin password</small>
+                            </div>
+                            <div class="col-4">
+                                <button id="btn-ban" class="btn btn-primary">Ban</button>
+                                <button id="btn-clear-ban" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </div>
+                    </div>            
+                </div>
+            </div>
+        </div>
     </p>
 
     <p>
-    <div class="container">
-        <div class="row">
-            <div class="col-4">
-                Nickname
-            </div>
-            <div id="div-nickname" class="col-8 form-text"></div>
+        <center><h4>Pilots</h4></center>
+        <div class="container" style="max-height: 200px; overflow-y: auto;">
+            <table class="table">
+                <thead>
+                    <th scope="col">Rank</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Country</th>
+                    <th scope="col">Combat flights</th>
+                    <th scope="col">Air kills</th>
+                    <th scope="col">Health</th>
+                    <th scope="col">Status</th>
+                </thead>
+                <tbody id="list-pilots">
+                </tbody>
+            </table>
         </div>
-        <div class="row">
-            <div class="col-4 form-text">Other nicknames</div>
-            <div id="div-prevnicks" class="col-8"></div>
-        </div>
-        <div class="row">
-            <div class="col-2 form-text">Ban status</div>
-            <div id="div-ban-status" class="col-2 form-text"></div>
-            <div class="col-1">
-                <input id="input-days-ban" class="form-control" value="2" aria-describedby="help-ban"/>
-                <small id="help-ban" class="form-text text-muted">Days</small>
-            </div>
-            <div class="col-3">
-                <input id="input-password" class="form-control" type="password" aria-describedby="help-password"/>
-                <small id="help-password" class="form-text text-muted">Admin password</small>
-            </div>
-            <div class="col-4">
-                <button id="btn-ban" class="btn btn-primary">Ban</button>
-                <button id="btn-clear-ban" class="btn btn-secondary">Clear</button>
-            </div>
-        </div>
-    </div>
     </p>
 
     <p>
-    <center><h4>Pilots</h4></center>
-    <div id="list-pilots" class="container" style="display: 500px; overflow-y: auto;">
-    </div>
+        <center><h4>Selected pilot</h4></center>
+        <div class="container">
+            <div class="row">
+                <div class="col-4 form-text">
+                    Name
+                </div>
+                <div id="div-pilot-name" class="col-8 form-text"></div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-text">
+                    Rank
+                </div>
+                <div id="div-pilot-rank" class="col-8 form-text"></div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-text">
+                    Air kills
+                </div>
+                <div id="div-pilot-kills" class="col-8 form-text"></div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-text">
+                    Country
+                </div>
+                <div id="div-pilot-country" class="col-8 form-text"></div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-text">
+                    Health
+                </div>
+                <div id="div-pilot-health" class="col-8 form-text"></div>
+            </div>
+        </div>
+    </p>
+    <p>
+        <div class="container" style="max-height: 200px; overflow-y: auto;">
+            <table class="table">
+                <thead>
+                    <th scope="col">Start</th>
+                    <th scope="col">Plane</th>
+                    <th scope="col">Air kills</th>
+                    <th scope="col">Arrival</th>
+                    <th scope="col">Plane condition</th>
+                </thead>
+                <tbody id="list-flights">
+                </tbody>
+            </table>
+        </div>
     </p>
 
     <p>
-    <center><h4>Selected pilot</h4></center>
-    <div class="container">
-        <div class="row">
-            <div class="col-4 form-text">
-                Name
-            </div>
-            <div id="div-pilot-name" class="col-8 form-text"></div>
+        <center><h4>Targets</h4></center>
+        <div class="container" style="max-height: 200px; overflow-y: auto;">
+            <table class="table">
+                <thead>
+                    <th scope="col">Type</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Object</th>
+                </thead>
+                <tbody id="list-events">
+                </tbody>
+            </table>
         </div>
-        <div class="row">
-            <div class="col-4 form-text">
-                Rank
-            </div>
-            <div id="div-pilot-rank" class="col-8 form-text"></div>
-        </div>
-        <div class="row">
-            <div class="col-4 form-text">
-                Air kills
-            </div>
-            <div id="div-pilot-kills" class="col-8 form-text"></div>
-        </div>
-        <div class="row">
-            <div class="col-4 form-text">
-                Country
-            </div>
-            <div id="div-pilot-country" class="col-8 form-text"></div>
-        </div>
-        <div class="row">
-            <div class="col-4 form-text">
-                Health
-            </div>
-            <div id="div-pilot-health" class="col-8 form-text"></div>
-        </div>
-    </div>
-    <p>
-    <div id="list-flights" class="container" style="display: 500px; overflow-y: auto;">
-    </div>
-    </p>
-    </p>
-
-    <p>
-    <center><h4>Targets</h4></center>
-    <div id="list-events" class="container" style="display: 500px; overflow-y: auto;">
-    </div>
     </p>
 
     <script src="/js/util.js"></script>
