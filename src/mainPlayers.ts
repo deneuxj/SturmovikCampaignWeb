@@ -116,9 +116,14 @@ function updatePlayers(player : string | null, pilot : string | null) {
                         entry.appendChild(healthCol)
 
                         const missions = pilotAndMissions.Missions
-                        const lastMission = missions[missions.length - 1]
-                        const statusCol = createTextCol(`${returnStatusString(lastMission.ReturnStatus)}`)
-                        entry.appendChild(statusCol)
+                        if (missions.length > 0) {
+                            const lastMission = missions[missions.length - 1]
+                            const statusCol = createTextCol(`${returnStatusString(lastMission.ReturnStatus)}`)
+                            entry.appendChild(statusCol)
+                        }
+                        else {
+                            entry.appendChild(createTextCol("Inactive"))
+                        }
 
                         entry.addEventListener("click", pilotClicked(pilot, pilotAndMissions.Missions))
 
