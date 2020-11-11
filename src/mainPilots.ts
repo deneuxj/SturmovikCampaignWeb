@@ -23,13 +23,13 @@ async function fetchPilots(filter : PilotSearchFilter | null) {
             tablePilots?.insertAdjacentHTML("beforeend",
                 `<tr>
                     <td>${pilot.RankAbbrev}</td>
-                    <td>${pilot.FirstName}</td>
-                    <td>${pilot.LastName}</td>
+                    <td><a href="/html/players.html?pilot=${pilot.Id}">${pilot.FirstName}</a></td>
+                    <td><a href="/html/players.html?pilot=${pilot.Id}">${pilot.LastName}</a></td>
                     <td>${pilot.Country}</td>
                     <td>${healthString(pilot.Health)}</td>
                     <td>${pilot.Flights}</td>
                     <td>${pilot.AirKills}</td>
-                    <td>${pilot.PlayerName}</td>
+                    <td><a href="/html/players.html?player=${pilot.PlayerName}">${pilot.PlayerName}</a></td>
                 </tr>`
             )
         }
