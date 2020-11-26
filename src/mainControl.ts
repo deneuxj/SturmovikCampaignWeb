@@ -33,19 +33,22 @@ async function loadControl() {
         if (command === "/control/reset") {
             content = JSON.stringify({ Scenario: inputArgument.value })
         }
-        else if (command === "/admin/player/ban") {
+        else if (command === "/admin/ban") {
             if (selectedPlayer) {
                 const inputDaysBan = document.getElementById("input-days-ban") as HTMLInputElement
                 const days = inputDaysBan.valueAsNumber
-                command = `/admin/${selectedPlayer.Guid.Guid}/ban`
+                command = `/admin/ban`
                 if (days <= 0) {
                     method = "DELETE"
+                    content = JSON.stringify({Player: `${selectedPlayer.Guid.Guid}`})
                 }
                 else {
-                    content = JSON.stringify({Days: days})
+                    content = JSON.stringify({Player: `${selectedPlayer.Guid.Guid}`, Days: days})
                 }
             }
             else {
+                removeAllChildren(paraResult)
+                paraResult?.appendChild(document.createTextNode("Check player name first"))
                 command = null
             }
         }
