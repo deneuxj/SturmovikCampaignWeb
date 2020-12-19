@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"command": "tsc",
+			"group": "build",
+			"label": "tsc",
+			"problemMatcher": [
+				"$tsc"
+			]
+		}
+	]
+}
