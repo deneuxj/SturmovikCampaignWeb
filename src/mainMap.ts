@@ -127,17 +127,24 @@ class BorderRenderer {
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
-    rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74])
+    rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74]),
+    stalingrad: new L.LatLngBounds([-90, -180], [25.471, 0])
 }
 
 // Get the bounds (leaflet's coordinate system) of a specific map and season
 function getMapBounds(mapName: string) {
     switch(mapName) {
-        case "rheinland-summer": return bounds.rheinland;
-        case "rheinland-winter": return bounds.rheinland;
-        case "rheinland-autumn": return bounds.rheinland;
-        case "rheinland-spring": return bounds.rheinland;
-        default: return undefined;
+        case "rheinland-summer":
+        case "rheinland-winter":
+        case "rheinland-autumn":
+        case "rheinland-spring":
+            return bounds.rheinland;
+        case "stalingrad-summer-1942":
+        case "stalingrad-autumn-1942":
+        case "stalingrad-winter-1942":
+            return bounds.stalingrad;
+        default:
+            return undefined;
     }
 }
 
@@ -154,18 +161,6 @@ const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
 const propertiesCell = document.getElementById("event-details")
 const graphDiv = document.getElementById("visualization")
-
-// The tiles of the map, using il2missionplanner.com
-const mapTiles = new L.TileLayer(config.tilesUrlTemplate,
-    {
-        tms: true,
-        noWrap: true,
-        minNativeZoom: 2,
-        maxNativeZoom: 7,
-        zoomOffset: 1,
-        attribution: "il2missionplanner.com"
-    })
-mapTiles.addTo(map)
 
 function plannerIcon(filename: string, iconSize: [number, number]) {
     return L.icon({
@@ -641,6 +636,20 @@ map.on("load", async() => {
     const world = await getWorldData()
     if (world == null)
         return
+
+    // The tiles of the map, using il2missionplanner.com
+    const mapTiles = new L.TileLayer(config.tilesUrlTemplate(world.Map),
+        {
+            tms: true,
+            noWrap: true,
+            minNativeZoom: 1,
+            maxNativeZoom: 6,
+            maxZoom: 7,
+            zoomOffset: 0,
+            attribution: "il2missionplanner.com"
+        })
+    mapTiles.addTo(map)
+
     const dates = await getDays(world)
     if (dates != null) {
         await buildGraph(world, dates)
