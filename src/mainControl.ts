@@ -22,6 +22,7 @@ async function loadControl() {
         const password = inputPassword?.value
         var method = "POST"
         var command : string | null = "/query/sync/state"
+        var url = config.campaignServerUrl
         for (const radioControl of radioControls) {
             const radioControlInput = radioControl as HTMLInputElement
             if (radioControlInput?.checked) {
@@ -35,15 +36,15 @@ async function loadControl() {
         }
         else if (command === "/admin/ban") {
             if (selectedPlayer) {
+                url = config.banEnforcerUrl
                 const inputDaysBan = document.getElementById("input-days-ban") as HTMLInputElement
                 const days = inputDaysBan.valueAsNumber
-                command = `/admin/ban`
+                command = `/bans/${selectedPlayer.Guid.Guid}`
                 if (days <= 0) {
                     method = "DELETE"
-                    content = JSON.stringify({Player: `${selectedPlayer.Guid.Guid}`})
                 }
                 else {
-                    content = JSON.stringify({Player: `${selectedPlayer.Guid.Guid}`, Days: days})
+                    content = JSON.stringify({Days: days, Hours: 0})
                 }
             }
             else {
@@ -60,7 +61,7 @@ async function loadControl() {
             addSpinner(paraResult)
             const headers = new Headers()
             headers.append("Authorization", "Basic " + btoa("admin:" + password))
-            const response = await fetch(config.campaignServerUrl + command,
+            const response = await fetch(url + command,
                 {
                     method: method,
                     headers: headers,
@@ -105,7 +106,15 @@ async function loadControl() {
                     removeAllChildren(divBanStatus)
                     removeAllChildren(paraResult)
                     paraResult?.appendChild(document.createTextNode("Player found"))
-                    divBanStatus?.appendChild(document.createTextNode(banString(selectedPlayer.BanStatus)))
+                    const banDataResponse = await fetch(config.banEnforcerUrl + `/bans/${selectedPlayer.Guid.Guid}`)
+                    var statusStr = "Not banned"
+                    if (banDataResponse.ok) {
+                        const banData : MaybeUntil = await banDataResponse.json()
+                        if (banData.Value != null) {
+                            statusStr = `Banned until ${dateToStr(banData.Value.Until)}`
+                        }
+                    }
+                    divBanStatus?.appendChild(document.createTextNode(statusStr))
                 }
                 else if (players.length == 0) {
                     removeAllChildren(paraResult)

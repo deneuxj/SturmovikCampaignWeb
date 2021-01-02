@@ -250,17 +250,6 @@ interface PilotWithMissionRecords {
     Missions : MissionRecord[]
 }
 
-interface Banned {
-    Banned: UntilDateTime
-}
-
-type BanStatus = "NotBanned" | Banned
-
-function banString(ban : BanStatus) {
-    if (ban == "NotBanned") return "Clear"
-    return `Banned until ${dateToStr(ban.Banned.Until)}`
-}
-
 interface HashedGuid {
     Guid : string
 }
@@ -268,8 +257,11 @@ interface HashedGuid {
 interface Player {
     Guid : HashedGuid
     Name : string
-    BanStatus : BanStatus
     Pilots : string[]
+}
+
+interface MaybeUntil {
+    Value : UntilDateTime | null
 }
 
 // 

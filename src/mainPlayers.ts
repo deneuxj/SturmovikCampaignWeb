@@ -142,14 +142,7 @@ function updatePlayers(player : string | null, pilot : string | null) {
                 const playerName = document.createElement("td")
                 playerName.appendChild(document.createTextNode(`${player.Name}`))
                 playerName.addEventListener("click", playerClicked(player))
-                
-                const banStatus = document.createElement("td")
-                banStatus.appendChild(
-                    document.createTextNode(banString(player.BanStatus))
-                )
-
                 row.appendChild(playerName)
-                row.appendChild(banStatus)
                 listPlayers?.appendChild(row)
             }
         }

@@ -1,6 +1,7 @@
 // Site-dependent configuration
 const config = {
     campaignServerUrl: window.location.protocol + "//" + window.location.hostname + ":" + window.location.port,
+    banEnforcerUrl: window.location.protocol + "//" + window.location.hostname + ":" + 8081,
     tilesUrlTemplate:
         function (map: string) {
             var mapName = "stalingrad";
