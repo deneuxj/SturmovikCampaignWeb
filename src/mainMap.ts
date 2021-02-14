@@ -128,7 +128,8 @@ class BorderRenderer {
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
     rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74]),
-    stalingrad: new L.LatLngBounds([-90, -180], [25.471, 0])
+    stalingrad: new L.LatLngBounds([-90, -180], [25.471, 0]),
+    kuban: new L.LatLngBounds([-90, -180], [-19.75, -78.52]),
 }
 
 // Get the bounds (leaflet's coordinate system) of a specific map and season
@@ -143,6 +144,10 @@ function getMapBounds(mapName: string) {
         case "stalingrad-autumn-1942":
         case "stalingrad-winter-1942":
             return bounds.stalingrad;
+        case "kuban-autumn":
+        case "kuban-spring":
+        case "kuban-summer":
+            return bounds.kuban;
         default:
             return undefined;
     }
