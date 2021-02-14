@@ -127,7 +127,7 @@ class BorderRenderer {
 
 // Bounds of each map (regardless of season variants) in leaflet's coordinate system
 const bounds = {
-    rheinland: new L.LatLngBounds([-90, -180], [68.27, 15.74]),
+    rheinland: new L.LatLngBounds([-90, -180], [-10.87, -82.13]),
     stalingrad: new L.LatLngBounds([-90, -180], [25.471, 0]),
     kuban: new L.LatLngBounds([-90, -180], [-19.75, -78.52]),
 }
