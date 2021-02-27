@@ -87,6 +87,15 @@ class WebDataSource implements DataSource {
         return players
     }
 
+    async getOnlinePlayers() {
+        var url = this.url + "/query/online"
+        const response = await fetch(url)
+        if (!response.ok)
+            return null
+        const players = await response.json() as Online
+        return players
+    }
+
     async getPlayerByName(name : string) {
         var url = this.url + `/query/players?name=${name}`
         const response = await fetch(url)

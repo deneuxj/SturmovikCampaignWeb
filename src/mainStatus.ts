@@ -1,10 +1,13 @@
 /// <reference types="bootstrap" />
 /// <reference path="./config.ts" />
 /// <reference path="./util.ts" />
+/// <reference path="./types.ts" />
+/// <reference path="./dataSource.ts" />
+/// <reference path="./common.ts" />
 
 // Various HTML elements to hook on
 const divStatus = document.getElementById("status-div") as HTMLDivElement
-const tablePlayers = document.getElementsByName("table-pilots")
+const tablePlayers = document.getElementById("table-pilots")
 const btnRefreshStatus = document.getElementById("btn-refresh")
 
 async function updateStatus() {
@@ -15,5 +18,23 @@ async function updateStatus() {
     divStatus?.appendChild(document.createTextNode(message.Value))
 }
 
+async function updateOnlinePlayers() {
+    const online = await dataSource.getOnlinePlayers()
+    removeAllChildren(tablePlayers)
+    if (online) {
+        for (const player of online.Players) {
+            tablePlayers?.appendChild(
+                document.createElement("tr").appendChild(
+                    document.createElement("td").appendChild(
+                        document.createTextNode(player)
+                    )
+                )
+            )
+        }
+    }
+}
+
 btnRefreshStatus?.addEventListener("click", updateStatus)
+btnRefreshStatus?.addEventListener("click", updateOnlinePlayers)
 window.addEventListener("load", updateStatus)
+window.addEventListener("load", updateOnlinePlayers)

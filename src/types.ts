@@ -264,6 +264,10 @@ interface MaybeUntil {
     Value : UntilDateTime | null
 }
 
+interface Online {
+    Players : string[]
+}
+
 // 
 // Commands
 //
