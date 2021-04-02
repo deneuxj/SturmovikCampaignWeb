@@ -18,6 +18,9 @@
             <a class="nav-link active" href="map.html">Campaign map</a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" href="graph.html">Campaign stats</a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" href="pilots.html">Pilots</a>
         </li>
         <li class="nav-item">
@@ -27,7 +30,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div id="mapid" style="width: 75%; height: 600px;"></div>
+            <div id="mapid" style="width: 75%; height: 800px;"></div>
             <div>
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="btn-days" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     YYYY-MM-DD HH:MM
@@ -35,11 +38,8 @@
                 </button>
                 <div class="dropdown-menu" aria-labelledby="btn-days" style="max-height: 400px; overflow: auto;" id="list-days"></div>
                 <ul id="list-events" style="max-height: 500px; width: 350px; overflow: auto;"></ul>
+                <div id="event-details" style="height: 400px;"></div>
             </div>
-        </div>
-        <div class="row">
-            <div id="visualization" style="width: 75%; height: 400px;"></div>
-            <div id="event-details" style="height: 400px;"></div>
         </div>
     </div>
 
