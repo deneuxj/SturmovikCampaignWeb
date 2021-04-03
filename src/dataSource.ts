@@ -51,8 +51,8 @@ class WebDataSource implements DataSource {
         const response = await fetch(this.url + query)
         if (!response.ok)
             return 0.0
-        const supplies = await response.json() as number
-        return supplies
+        const supplies = await response.json() as {Value: number}
+        return supplies.Value
     }
 
     async getRegionCapacity(idx: number, region: string) {
@@ -60,8 +60,8 @@ class WebDataSource implements DataSource {
         const response = await fetch(this.url + query)
         if (!response.ok)
             return 0.0
-        const capacity = await response.json() as number
-        return capacity
+        const capacity = await response.json() as {Value: number}
+        return capacity.Value
     }
 
     async getAirfieldCapacity(idx: number, airfield: string) {
@@ -69,8 +69,8 @@ class WebDataSource implements DataSource {
         const response = await fetch(this.url + query)
         if (!response.ok)
             return 0.0
-        const capacity = await response.json() as number
-        return capacity
+        const capacity = await response.json() as {Value: number}
+        return capacity.Value
     }
 
     async getSimulationSteps(idx: number) {
