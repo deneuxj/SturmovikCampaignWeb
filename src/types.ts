@@ -119,12 +119,8 @@ interface WarState {
     Date: DateTime
     GroundForces: GroundForces[]
     RegionOwner: Dict<Coalition>
-    SupplyStatus: Dict<number>
     Planes: Dict<Dict<number>>
-    BuildingHealth: BuildingStatus[]
     BridgeHealth: BuildingStatus[]
-    RoadTransport: AdjacentRegionsTransportCapacity[]
-    RailTransport: AdjacentRegionsTransportCapacity[]
     Weather: any
 }
 

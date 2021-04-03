@@ -57,36 +57,22 @@ async function buildGraph(world : World) {
                 return []
             return world.Regions.filter(reg => data.RegionOwner[reg.Id] == coalition)
         }
-        function suppliesIn(regions: Region[]) {
-            if (data == null)
-                return 0
-            return sum(regions.map(reg => data.SupplyStatus[reg.Id] ?? 0))
+        async function asyncMap<U, V>(items: U[], func: ((x: U) => Promise<V>)) {
+            var xs = []
+            for (const item of items) {
+                const x = await func(item)
+                xs.push(x)
+            }
+            return xs
         }
-        function capacityInRegion(region: Region): number {
-            if (data == null)
-                return 0
-            const res =
-                region.Buildings
-                .map(b =>
-                    {
-                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
-                        const level = (data.BuildingHealth.find(value => posEq(value.Position, b.Position))?.FunctionalityLevel ?? 1.0)
-                        return level * capacity
-                    })
-            return sum(res)
+        async function suppliesIn(regions: Region[]) {
+            return sum(await asyncMap(regions, reg => dataSource.getRegionSupplies(i, reg.Id)))
         }
-        function capacityInAirfield(airfield: Airfield): number {
-            if (data == null)
-                return 0
-            const res =
-                airfield.Buildings
-                .map(b =>
-                    {
-                        const capacity = world.BuildingProperties[b.PropertiesId].Capacity ?? 0
-                        const level = (data.BuildingHealth.find(value => posEq(value.Position, b.Position))?.FunctionalityLevel ?? 1.0)
-                        return level * capacity
-                    })
-            return sum(res)
+        async function capacityInRegion(region: Region) {
+            return await dataSource.getRegionCapacity(i, region.Id)
+        }
+        async function capacityInAirfield(airfield: Airfield) {
+            return await dataSource.getAirfieldCapacity(i, airfield.Id)
         }
         function airfieldsOf(coalition: Coalition) {
             if (data == null)
@@ -144,16 +130,16 @@ async function buildGraph(world : World) {
         const alliesPlaneLosses = planeLosses(alliesAirfields)
         axisNumRegions.push(axisRegions.length)
         alliesNumRegions.push(alliesRegions.length)
-        axisSupplies.push(suppliesIn(axisRegions))
-        alliesSupplies.push(suppliesIn(alliesRegions))
+        axisSupplies.push(await suppliesIn(axisRegions))
+        alliesSupplies.push(await suppliesIn(alliesRegions))
         axisGroundForces.push(totalGroundForces("Axis"))
         alliesGroundForces.push(totalGroundForces("Allies"))
         axisPlanes.push(planesAtAirfields(axisAirfields))
         alliesPlanes.push(planesAtAirfields(alliesAirfields))
-        axisRegionCapacity.push(sum(axisRegions.map(capacityInRegion)))
-        alliesRegionCapacity.push(sum(alliesRegions.map(capacityInRegion)))
-        axisAirfieldCapacity.push(sum(axisAirfields.map(capacityInAirfield)))
-        alliesAirfieldCapacity.push(sum(alliesAirfields.map(capacityInAirfield)))
+        axisRegionCapacity.push(sum(await asyncMap(axisRegions, capacityInRegion)))
+        alliesRegionCapacity.push(sum(await asyncMap(alliesRegions, capacityInRegion)))
+        axisAirfieldCapacity.push(sum(await asyncMap(axisAirfields, capacityInAirfield)))
+        alliesAirfieldCapacity.push(sum(await asyncMap(alliesAirfields, capacityInAirfield)))
         axisFlightLosses.push(axisPlaneLosses.shot)
         alliesFlightLosses.push(alliesPlaneLosses.shot)
         axisParkedLosses.push(axisPlaneLosses.strafed)

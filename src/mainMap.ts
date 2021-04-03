@@ -39,7 +39,7 @@ class RegionWithOwner {
 class EasyWarState {
     world: World
     state: WarState
-    buildingStatus: Dict<BuildingStatus>
+    bridgesStatus: Dict<BuildingStatus>
     regions: Dict<Region>
     groundForces: Dict<number>
     airfields: Dict<Airfield>
@@ -47,10 +47,10 @@ class EasyWarState {
     constructor(world: World, state: WarState) {
         this.world = world
         this.state = state
-        this.buildingStatus = {}
-        for (const status of state.BuildingHealth) {
+        this.bridgesStatus = {}
+        for (const status of state.BridgeHealth) {
             const key = JSON.stringify(status.Position)
-            this.buildingStatus[key] = status
+            this.bridgesStatus[key] = status
         }
         this.regions = {}
         for (const r of world.Regions) {
@@ -68,26 +68,6 @@ class EasyWarState {
         for (const af of world.Airfields) {
             this.airfields[af.Id] = af
         }
-    }
-
-    public capacityInBuildings(buildings: BuildingInstance[]) {
-        const res =
-            buildings
-            .map(b =>
-                {
-                    const capacity = this.world.BuildingProperties[b.PropertiesId].Capacity ?? 0
-                    const level = this.buildingStatus[JSON.stringify(b.Position)]?.FunctionalityLevel ?? 1.0
-                    return level * capacity
-                })
-        return sum(res ?? [])
-    }
-
-    public capacityInRegion(regionId: string) {
-        return this.capacityInBuildings(this.regions[regionId]?.Buildings ?? [])
-    }
-
-    public capacityAtAirfield(airfieldId: string) {
-        return this.capacityInBuildings(this.airfields[airfieldId]?.Buildings ?? [])
     }
 
     public groundForcesInRegion(regionId: string, coalition: Coalition) {
@@ -281,8 +261,8 @@ function fetchDayData(world: World, idx: number) {
             regionsWithOwners.drawBorders()
             // Set popups for regions: supplies, storage and troops
             for (const region of world.Regions) {
-                const supplies = Math.round(dayData.SupplyStatus[region.Id] ?? 0)
-                const storage = Math.round(easy.capacityInRegion(region.Id))
+                const supplies = Math.round(await dataSource.getRegionSupplies(idx, region.Id))
+                const storage = Math.round(await dataSource.getRegionCapacity(idx, region.Id))
                 let items =
                 [
                     `logistics: ${supplies} m^3/h`,
@@ -303,7 +283,7 @@ function fetchDayData(world: World, idx: number) {
             // Set popups for airfields: storage and planes
             for (const airfield of world.Airfields) {
                 const planes = Math.trunc(sum(valuesOf(dayData.Planes[airfield.Id])) ?? 0)
-                const storage = Math.round(easy.capacityAtAirfield(airfield.Id))
+                const storage = Math.round(await dataSource.getAirfieldCapacity(idx, airfield.Id))
                 airfieldMarkers[airfield.Id]?.unbindPopup().bindPopup(
                     mkUnumberedList(
                         [

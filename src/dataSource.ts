@@ -38,12 +38,39 @@ class WebDataSource implements DataSource {
     }
 
     async getState(idx: number) {
-        const query = `/query/past/${idx}`
+        const query = `/query/state/${idx}/summary`
         const dayResponse = await fetch(this.url + query)
         if (!dayResponse.ok)
             return null
         const state = await dayResponse.json() as WarState
         return state
+    }
+
+    async getRegionSupplies(idx: number, region: string) {
+        const query = `/query/state/${idx}/regions/${region}/supplies`
+        const response = await fetch(this.url + query)
+        if (!response.ok)
+            return 0.0
+        const supplies = await response.json() as number
+        return supplies
+    }
+
+    async getRegionCapacity(idx: number, region: string) {
+        const query = `/query/state/${idx}/regions/${region}/capacity`
+        const response = await fetch(this.url + query)
+        if (!response.ok)
+            return 0.0
+        const capacity = await response.json() as number
+        return capacity
+    }
+
+    async getAirfieldCapacity(idx: number, airfield: string) {
+        const query = `/query/state/${idx}/airfields/${airfield}/capacity`
+        const response = await fetch(this.url + query)
+        if (!response.ok)
+            return 0.0
+        const capacity = await response.json() as number
+        return capacity
     }
 
     async getSimulationSteps(idx: number) {
