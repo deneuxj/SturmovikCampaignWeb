@@ -25,8 +25,6 @@ async function buildGraph(world : World) {
     const alliesRegionCapacity: number[] = []
     const axisAirfieldCapacity: number[] = []
     const alliesAirfieldCapacity: number[] = []
-    const axisSupplies: number[] = []
-    const alliesSupplies: number[] = []
     const axisGroundForces: number[] = []
     const alliesGroundForces: number[] = []
     const axisPlanes: number[] = []
@@ -130,8 +128,6 @@ async function buildGraph(world : World) {
         const alliesPlaneLosses = planeLosses(alliesAirfields)
         axisNumRegions.push(axisRegions.length)
         alliesNumRegions.push(alliesRegions.length)
-        axisSupplies.push(await suppliesIn(axisRegions))
-        alliesSupplies.push(await suppliesIn(alliesRegions))
         axisGroundForces.push(totalGroundForces("Axis"))
         alliesGroundForces.push(totalGroundForces("Allies"))
         axisPlanes.push(planesAtAirfields(axisAirfields))
@@ -168,16 +164,6 @@ async function buildGraph(world : World) {
             x: timeline,
             y: alliesNumRegions.map(mkScale(100)),
             name: "regions (Allies) x100"
-        },
-        {
-            x: timeline,
-            y: axisSupplies.map(mkScale(1e-3)),
-            name: "supplies (Axis) /1k"
-        },
-        {
-            x: timeline,
-            y: alliesSupplies.map(mkScale(1e-3)),
-            name: "supplies (Allies) /1k"
         },
         {
             x: timeline,
