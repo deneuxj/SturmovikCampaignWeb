@@ -124,7 +124,7 @@ class WebDataSource implements DataSource {
     }
 
     async getPlayerByName(name : string) {
-        var url = this.url + `/query/players?name=${name}`
+        var url = this.url + `/query/players?name=${encodeURIComponent(name)}`
         const response = await fetch(url)
         if (!response.ok)
             return null

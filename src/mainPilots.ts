@@ -20,6 +20,7 @@ async function fetchPilots(filter : PilotSearchFilter | null) {
     removeSpinner(btnFilter)
     if (results) {
         for (const pilot of results) {
+            const encodedPlayerName = encodeURIComponent(pilot.PlayerName)
             tablePilots?.insertAdjacentHTML("beforeend",
                 `<tr>
                     <td>${pilot.RankAbbrev}</td>
@@ -29,7 +30,7 @@ async function fetchPilots(filter : PilotSearchFilter | null) {
                     <td>${healthString(pilot.Health)}</td>
                     <td>${pilot.Flights}</td>
                     <td>${pilot.AirKills}</td>
-                    <td><a href="/html/players.html?player=${pilot.PlayerName}">${pilot.PlayerName}</a></td>
+                    <td><a href="/html/players.html?player=${encodedPlayerName}">${pilot.PlayerName}</a></td>
                 </tr>`
             )
         }
