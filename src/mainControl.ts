@@ -2,6 +2,8 @@
 /// <reference path="./config.ts" />
 /// <reference path="./util.ts" />
 /// <reference path="./types.ts" />
+/// <reference path="./dataSource.ts" />
+/// <reference path="./common.ts" />
 
 // Various HTML elements to hook on
 async function loadControl() {
@@ -129,6 +131,18 @@ async function loadControl() {
                 }
             }
         })
+    }
+
+    if (inputArgument) {
+        var scenarios = await dataSource.getScenarios()
+        if (scenarios) {
+            removeAllChildren(inputArgument)
+            for (const scenario of scenarios) {
+                var entry = document.createElement("option")
+                entry.appendChild(document.createTextNode(scenario))
+                inputArgument.appendChild(entry)
+            }
+        }
     }
 }
 
