@@ -114,6 +114,9 @@ async function loadControl() {
                             statusStr = `Banned until ${dateToStr(banData.Value.Until)}`
                         }
                     }
+                    else {
+                        statusStr = "Failed to ban"
+                    }
                     divBanStatus?.appendChild(document.createTextNode(statusStr))
                 }
                 else if (players.length == 0) {
