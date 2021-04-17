@@ -215,7 +215,7 @@ interface LandedAtAirfieldReturnStatus {
     LandedAtAirfield : string
 }
 
-type ReturnStatus = LandedAtAirfieldReturnStatus | "CrashedInFriendlyTerritory" | "CrashedInEnemyTerritory"
+type ReturnStatus = LandedAtAirfieldReturnStatus | "CrashedInFriendlyTerritory" | "CrashedInEnemyTerritory" | "KilledInAction"
 
 function returnStatusString(status : ReturnStatus) {
     switch (status) {
@@ -225,6 +225,9 @@ function returnStatusString(status : ReturnStatus) {
         case "CrashedInFriendlyTerritory":
             return "Crash landed"
             
+        case "KilledInAction":
+            return "Killed in action"
+
         default:
             return `At ${status.LandedAtAirfield}`
     }
