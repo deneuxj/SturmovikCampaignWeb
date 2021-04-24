@@ -53,13 +53,21 @@
             <div class="form-group">
                 <label>
                     <input type="radio" id="input-advance" name="radio-control" value="/contro/advance">
-                    Force advance (1 step)
+                    Force advance (at least 1 step)
                 </label>
+                <input type="number" class="form-control" name="input-advance-steps" id="input-advance-steps">
             </div>
             <div class="form-group">
                 <label>
-                    <input type="radio" id="input-run" name="radio-control" value="/control/run">
-                    Force advance (multiple steps)
+                    <input type="radio" id="input-back-to" name="radio-control" value="/control/backto">
+                    Force back to specific step (0 is first)
+                </label>
+                <input type="number" class="form-control" name="input-back-to-idx" id="input-back-to-idx">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="radio" id="input-forward" name="radio-control" value="/control/forward">
+                    Forward simulation (useful after Force back)
                 </label>
             </div>
             <div class="form-group">

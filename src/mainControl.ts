@@ -9,6 +9,8 @@
 async function loadControl() {
     const inputPassword = document.getElementById("input-password") as HTMLInputElement
     const inputArgument = document.getElementById("input-argument") as HTMLInputElement
+    const inputAdvanceSteps = document.getElementById("input-advance-steps") as HTMLInputElement
+    const inputBackToIdx = document.getElementById("input-back-to-idx") as HTMLInputElement
     const inputPlayerName = document.getElementById("input-player-name") as HTMLInputElement
     const radioControls = document.getElementsByName("radio-control")
     const btnCheckName = document.getElementById("btn-check-name")
@@ -35,6 +37,12 @@ async function loadControl() {
         var content = ""
         if (command === "/control/reset") {
             content = JSON.stringify({ Scenario: inputArgument.value })
+        }
+        else if (command === "/control/advance") {
+            content = JSON.stringify({ NumSteps: inputAdvanceSteps.valueAsNumber })
+        }
+        else if (command === "/control/backto") {
+            content = JSON.stringify({ Index: inputBackToIdx.valueAsNumber })
         }
         else if (command === "/admin/ban") {
             if (selectedPlayer) {
