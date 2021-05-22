@@ -177,7 +177,38 @@ let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
 let regionMarkers: Dict<L.Marker> = {}
 
+function setRegionMarkers(world: World, ownerOf: (region: string) => string | null) {
+    regionMarkers = {}
+    for (let i = 0; i < world.Regions.length; i++) {
+        const region = world.Regions[i]
+        const owner = ownerOf(region.Id)
+        if (owner == null)
+            continue
+        let m = L.marker(transform(region.Position), {
+            title: region.Id,
+            alt: `Region ${region.Id}`,
+            icon: ownerOf(region.Id) == "Allies" ? icons.city.red : icons.city.blue
+        }).addTo(map)
+        regionMarkers[region.Id] = m
+    }
+}
+
 let airfieldMarkers: Dict<L.Marker> = {}
+
+function setAirfieldMarkers(world: World, ownerOf: (region: string) => string | null) {
+    airfieldMarkers = {}
+    for (const airfield of world.Airfields) {
+        let owner = ownerOf(airfield.Region)
+        if (owner == null)
+            continue
+        let m = L.marker(transform(airfield.Position), {
+            title: airfield.Id,
+            alt: `Airfield ${airfield.Id}`,
+            icon: owner == "Allies" ? icons.airfield.red : icons.airfield.blue
+        }).addTo(map)
+        airfieldMarkers[airfield.Id] = m
+    }
+}
 
 // Get world data: Static information about regions, airfields...
 async function getWorldData() {
@@ -201,28 +232,17 @@ async function getWorldData() {
     else {
         console.error(`Bounds for map '${mapName}' are unknown`)
     }
-    regionMarkers = {}
-    let regions: Dict<Region> = {}
-    for (let i = 0; i < world.Regions.length; i++) {
-        const region = world.Regions[i];
-        regions[region.Id] = region
-        let m = L.marker(transform(region.Position), {
-            title: region.Id,
-            alt: `Region ${region.Id}`,
-            icon: region.InitialOwner == "Allies" ? icons.city.red : icons.city.blue
-        }).addTo(map)
-        regionMarkers[region.Id] = m
+    function ownerOf(region: string) {
+        if (world == null)
+            return null
+        for (const r of world.Regions) {
+            if (r.Id == region)
+                return r.InitialOwner
+        }
+        return null
     }
-    airfieldMarkers = {}
-    for (const airfield of world.Airfields) {
-        let owner = regions[airfield.Region]?.InitialOwner
-        let m = L.marker(transform(airfield.Position), {
-            title: airfield.Id,
-            alt: `Airfield ${airfield.Id}`,
-            icon: owner == "Allies" ? icons.airfield.red : icons.airfield.blue
-        }).addTo(map)
-        airfieldMarkers[airfield.Id] = m
-    }
+    setRegionMarkers(world, ownerOf)
+    setAirfieldMarkers(world, ownerOf)
     return world
 }
 
@@ -243,9 +263,10 @@ function setDaysButtonLabel(label: string) {
 function fetchDayData(world: World, idx: number) {
     return async () => {
         const dayData = await dataSource.getState(idx)
-        // Draw region borders
         if (dayData != null) {
             const easy = new EasyWarState(world, dayData)
+
+            // Region borders
             function drawPolyLine(vs: Vector2[], color: string) {
                 const ps = vs.map(transform)
                 ps.push(ps[0])
@@ -259,6 +280,19 @@ function fetchDayData(world: World, idx: number) {
             }
             daysPolys = []
             regionsWithOwners.drawBorders()
+
+            // Region and airfield icons
+            function ownerOf(region: string) {
+                if (easy == null)
+                    return null
+                const owner = easy.state.RegionOwner[region]
+                if (owner == undefined)
+                    return null
+                return owner
+            }
+            setRegionMarkers(world, ownerOf)
+            setAirfieldMarkers(world, ownerOf)
+
             // Set popups for regions: supplies, storage and troops
             for (const region of world.Regions) {
                 const supplies = Math.round(await dataSource.getRegionSupplies(idx, region.Id))
