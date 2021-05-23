@@ -136,9 +136,6 @@ let map = new L.Map("mapid", {
     crs: L.CRS.EPSG4326
 })
 
-// The layers of the data of the day on the map
-let daysPolys: L.Polyline[] = []
-
 // Various HTML elements to hook on
 const dayslist = document.getElementById("list-days")
 const dayEvents = document.getElementById("list-events")
@@ -168,15 +165,46 @@ const icons = {
         red: plannerIconRE("red", "af"),
         blue: plannerIconRE("blue", "af"),
         black: plannerIconRE("black", "af")
+    },
+    truck: {
+        red: plannerIconRE("red", "motorcade"),
+        blue: plannerIconRE("blue", "motorcade"),
+        black: plannerIconRE("black", "motorcade")
     }
 }
 
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
+// The layers of the data of the day on the map
+let daysPolys: L.Polyline[] = []
+
+function drawPolyLine(vs: Vector2[], color: string) {
+    const ps = vs.map(transform)
+    ps.push(ps[0])
+    const poly = L.polyline(ps, { color: color })
+    daysPolys.push(poly)
+    poly.addTo(map)
+}
 let regionMarkers: Dict<L.Marker> = {}
 
+function removeMarkers(markers : Dict<L.Marker>) {
+    for (const key in markers.values) {
+        const marker = markers[key]
+        if (marker == undefined)
+            continue
+        map.removeLayer(marker)
+    }
+}
+
+function removeMarkersArray(markers : L.Marker[]) {
+    for (const marker of markers) {
+        map.removeLayer(marker)
+    }
+}
+
 function setRegionMarkers(world: World, ownerOf: (region: string) => string | null) {
+    removeMarkers(regionMarkers)
     regionMarkers = {}
     for (let i = 0; i < world.Regions.length; i++) {
         const region = world.Regions[i]
@@ -195,6 +223,7 @@ function setRegionMarkers(world: World, ownerOf: (region: string) => string | nu
 let airfieldMarkers: Dict<L.Marker> = {}
 
 function setAirfieldMarkers(world: World, ownerOf: (region: string) => string | null) {
+    removeMarkers(airfieldMarkers)
     airfieldMarkers = {}
     for (const airfield of world.Airfields) {
         let owner = ownerOf(airfield.Region)
@@ -206,6 +235,34 @@ function setAirfieldMarkers(world: World, ownerOf: (region: string) => string | 
             icon: owner == "Allies" ? icons.airfield.red : icons.airfield.blue
         }).addTo(map)
         airfieldMarkers[airfield.Id] = m
+    }
+}
+
+let truckMarkers: L.Marker[] = []
+async function setTruckMarkers(world: World, idx: number) {
+    removeMarkersArray(truckMarkers)
+    truckMarkers = []
+    const regions : Dict<Region> = {}
+    for (const regionA of world.Regions) {        
+        for (const regionBName of regionA.Neighbours) {
+            const regionB = regions[regionBName]
+            if (regionB ==  undefined)
+                continue
+            const posB = regionB.Position
+            const posA = regionA.Position
+            const capacity = await dataSource.getTransportCapacity(idx, regionA.Id, regionB.Id)
+            if (capacity <= 0)
+                continue
+            drawPolyLine([posA, posB], "black")
+            const middle = { X: (posA.X + posB.X) / 2.0, Y: (posA.Y + posB.Y) / 2.0 }
+            const m = L.marker(transform(middle), {
+                title: capacity.toFixed(),
+                icon: icons.truck.blue,
+                opacity: 0.5
+            }).addTo(map)
+            truckMarkers.push(m)
+        }
+        regions[regionA.Id] = regionA
     }
 }
 
@@ -265,14 +322,7 @@ function fetchDayData(world: World, idx: number) {
         if (dayData != null) {
             const easy = new EasyWarState(world, dayData)
 
-            // Region borders
-            function drawPolyLine(vs: Vector2[], color: string) {
-                const ps = vs.map(transform)
-                ps.push(ps[0])
-                const poly = L.polyline(ps, { color: color })
-                daysPolys.push(poly)
-                poly.addTo(map)
-            }
+            // Region borders            
             const regionsWithOwners = new BorderRenderer(drawPolyLine, world, dayData)
             for (const polyline of daysPolys) {
                 map.removeLayer(polyline)
@@ -291,6 +341,7 @@ function fetchDayData(world: World, idx: number) {
             }
             setRegionMarkers(world, ownerOf)
             setAirfieldMarkers(world, ownerOf)
+            setTruckMarkers(world, idx)
 
             // Set popups for regions: supplies, storage and troops
             for (const region of world.Regions) {
@@ -313,6 +364,7 @@ function fetchDayData(world: World, idx: number) {
                     mkUnumberedList(items)
                 )
             }
+
             // Set popups for airfields: storage and planes
             for (const airfield of world.Airfields) {
                 const planes = Math.trunc(sum(valuesOf(dayData.Planes[airfield.Id])) ?? 0)
@@ -326,6 +378,9 @@ function fetchDayData(world: World, idx: number) {
                     )
                 )
             }
+
+            // Set transport capacity between regions
+
         }
         // Populate list of events
         if (dayEvents != null) {
@@ -427,6 +482,11 @@ map.on("load", async() => {
 // Debug: show leaflet coordinates when clicking on the map
 map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
+})
+
+map.on("zoomend", (args: L.LeafletEvent) => {
+    const zoom = map.getZoom()
+    console.info(args)
 })
 
 map.fitWorld()

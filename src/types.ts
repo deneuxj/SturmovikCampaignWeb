@@ -109,7 +109,7 @@ interface BuildingStatus {
     FunctionalityLevel: number
 }
 
-interface AdjacentRegionsTransportCapacity {
+interface RegionsTransportCapacity {
     RegionA: string
     RegionB: string
     Capacity: number

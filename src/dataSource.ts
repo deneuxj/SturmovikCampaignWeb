@@ -13,6 +13,7 @@ interface DataSource {
     getState(idx: number): Promise<WarState | null>
     getSimulationSteps(idx: number): Promise<SimulationStep[] | null>
     getPilots(filter: PilotSearchFilter | null): Promise<Pilot[] | null>
+    getTransportCapacity(idx: number, regionA: string, regionB: string): Promise<number>
 }
 
 class WebDataSource implements DataSource {
@@ -151,5 +152,14 @@ class WebDataSource implements DataSource {
             return null
         const scenarios = await response.json() as string[]
         return scenarios
+    }
+
+    async getTransportCapacity(idx: number, regionA: string, regionB: string) {
+        var url = this.url + `/query/state/${idx}/transport/${regionA}/${regionB}/land`
+        const response = await fetch(url)
+        if (!response.ok)
+            return 0
+        const capacity = await response.json() as { Value: number };
+        return capacity.Value
     }
 }
