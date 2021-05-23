@@ -176,30 +176,49 @@ const icons = {
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
 let transform = (v : Vector2): L.LatLng => new L.LatLng(v.X, v.Y);
 
-// The layers of the data of the day on the map
+// The layers of region boundaries on the map
 let daysPolys: L.Polyline[] = []
 
-function drawPolyLine(vs: Vector2[], color: string) {
+// The layers of transport links on the map
+let transportPolys: L.Polyline[] = []
+
+function drawPolyLine(vs: Vector2[], polys: L.Polyline[], options?: null | { color?: string, isLoop?: boolean, addToMap?: boolean }) {
     const ps = vs.map(transform)
-    ps.push(ps[0])
-    const poly = L.polyline(ps, { color: color })
-    daysPolys.push(poly)
-    poly.addTo(map)
+    if (options?.isLoop)
+        ps.push(ps[0])
+    const poly = L.polyline(ps, { color: options?.color ?? "black" })
+    polys.push(poly)
+    if (options?.addToMap)
+        poly.addTo(map)
 }
+
 let regionMarkers: Dict<L.Marker> = {}
 
-function removeMarkers(markers : Dict<L.Marker>) {
-    for (const key in markers.values) {
-        const marker = markers[key]
+function removeMarkers(markers : Dict<L.Layer>) {
+    for (const [key, marker] of Object.entries(markers)) {
         if (marker == undefined)
             continue
         map.removeLayer(marker)
     }
 }
 
-function removeMarkersArray(markers : L.Marker[]) {
+function restoreMarkers(markers : Dict<L.Layer>) {
+    for (const [key, marker] of Object.entries(markers)) {
+        if (marker == undefined)
+            continue
+        marker.addTo(map)
+    }
+}
+
+function removeMarkersArray(markers : L.Layer[]) {
     for (const marker of markers) {
         map.removeLayer(marker)
+    }
+}
+
+function restoreMarkersArray(markers: L.Layer[]) {
+    for (const marker of markers) {
+        marker.addTo(map)
     }
 }
 
@@ -215,7 +234,7 @@ function setRegionMarkers(world: World, ownerOf: (region: string) => string | nu
             title: region.Id,
             alt: `Region ${region.Id}`,
             icon: ownerOf(region.Id) == "Allies" ? icons.city.red : icons.city.blue
-        }).addTo(map)
+        })
         regionMarkers[region.Id] = m
     }
 }
@@ -233,7 +252,7 @@ function setAirfieldMarkers(world: World, ownerOf: (region: string) => string | 
             title: airfield.Id,
             alt: `Airfield ${airfield.Id}`,
             icon: owner == "Allies" ? icons.airfield.red : icons.airfield.blue
-        }).addTo(map)
+        })
         airfieldMarkers[airfield.Id] = m
     }
 }
@@ -242,6 +261,7 @@ let truckMarkers: L.Marker[] = []
 async function setTruckMarkers(world: World, idx: number) {
     removeMarkersArray(truckMarkers)
     truckMarkers = []
+    transportPolys = []
     const regions : Dict<Region> = {}
     for (const regionA of world.Regions) {        
         for (const regionBName of regionA.Neighbours) {
@@ -253,13 +273,13 @@ async function setTruckMarkers(world: World, idx: number) {
             const capacity = await dataSource.getTransportCapacity(idx, regionA.Id, regionB.Id)
             if (capacity <= 0)
                 continue
-            drawPolyLine([posA, posB], "black")
+            drawPolyLine([posA, posB], transportPolys, { color: "black" })
             const middle = { X: (posA.X + posB.X) / 2.0, Y: (posA.Y + posB.Y) / 2.0 }
             const m = L.marker(transform(middle), {
                 title: capacity.toFixed(),
                 icon: icons.truck.blue,
                 opacity: 0.5
-            }).addTo(map)
+            })
             truckMarkers.push(m)
         }
         regions[regionA.Id] = regionA
@@ -322,8 +342,8 @@ function fetchDayData(world: World, idx: number) {
         if (dayData != null) {
             const easy = new EasyWarState(world, dayData)
 
-            // Region borders            
-            const regionsWithOwners = new BorderRenderer(drawPolyLine, world, dayData)
+            // Region borders
+            const regionsWithOwners = new BorderRenderer((vs: Vector2[], color: string) => drawPolyLine(vs, daysPolys, { color: color, isLoop: true, addToMap:true }), world, dayData)
             for (const polyline of daysPolys) {
                 map.removeLayer(polyline)
             }
@@ -484,9 +504,21 @@ map.on("click", async(args: L.LeafletMouseEvent) => {
     console.info(args.latlng)
 })
 
+// Hide or show layers depending on zoom
 map.on("zoomend", (args: L.LeafletEvent) => {
     const zoom = map.getZoom()
-    console.info(args)
+    removeMarkersArray(truckMarkers)
+    removeMarkers(regionMarkers)
+    removeMarkers(airfieldMarkers)
+    removeMarkersArray(transportPolys)
+    if (zoom >= 4) {
+        restoreMarkers(regionMarkers)
+        restoreMarkers(airfieldMarkers)
+    }
+    if (zoom >= 5) {
+        restoreMarkersArray(transportPolys)
+        restoreMarkersArray(truckMarkers)
+    }
 })
 
 map.fitWorld()
