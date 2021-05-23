@@ -3,7 +3,6 @@
 /// <reference path="./util.ts" />
 /// <reference path="./types.ts" />
 /// <reference path="./dataSource.ts" />
-/// <reference path="./sampleData.ts" />
 /// <reference path="./common.ts" />
 
 const tablePilots = document.getElementById("table-pilots")
