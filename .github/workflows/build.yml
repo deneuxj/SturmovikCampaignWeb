@@ -48,3 +48,4 @@ jobs:
         path: |
           html
           js
+          img
