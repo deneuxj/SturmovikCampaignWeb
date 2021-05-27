@@ -166,11 +166,14 @@ const icons = {
         blue: plannerIconRE("blue", "af"),
         black: plannerIconRE("black", "af")
     },
-    truck: {
-        red: plannerIconRE("red", "motorcade"),
-        blue: plannerIconRE("blue", "motorcade"),
-        black: plannerIconRE("black", "motorcade")
-    }
+    truck: plannerIconRE("blue", "motorcade"),
+    bridge:
+        L.icon({
+            iconUrl: config.campaignServerUrl + "/img/bridge.png",
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [17, 17]
+        })
 }
 
 // Set to a proper transformation from game world coordinates to Leaflet coordinates upon reception of world data
@@ -277,12 +280,26 @@ async function setTruckMarkers(world: World, idx: number) {
             const middle = { X: (posA.X + posB.X) / 2.0, Y: (posA.Y + posB.Y) / 2.0 }
             const m = L.marker(transform(middle), {
                 title: capacity.toFixed(),
-                icon: icons.truck.blue,
+                icon: icons.truck,
                 opacity: 0.5
             })
             truckMarkers.push(m)
         }
         regions[regionA.Id] = regionA
+    }
+}
+
+let bridgeMarkers: L.Marker[] = []
+async function setBridgeMarkers(world: World, state: WarState) {
+    removeMarkersArray(bridgeMarkers)
+    bridgeMarkers = []
+    for (const health of state.BridgeHealth) {
+        const m = L.marker(transform(health.Position.Position), {
+            title: `${(100 * health.FunctionalityLevel).toFixed()}% operational`,
+            icon: icons.bridge,
+            opacity: 0.5
+        })
+        bridgeMarkers.push(m)
     }
 }
 
@@ -362,6 +379,7 @@ function fetchDayData(world: World, idx: number) {
             setRegionMarkers(world, ownerOf)
             setAirfieldMarkers(world, ownerOf)
             setTruckMarkers(world, idx)
+            setBridgeMarkers(world, dayData)
 
             // Set popups for regions: supplies, storage and troops
             for (const region of world.Regions) {
@@ -511,6 +529,7 @@ map.on("zoomend", (args: L.LeafletEvent) => {
     removeMarkers(regionMarkers)
     removeMarkers(airfieldMarkers)
     removeMarkersArray(transportPolys)
+    removeMarkersArray(bridgeMarkers)
     if (zoom >= 4) {
         restoreMarkers(regionMarkers)
         restoreMarkers(airfieldMarkers)
@@ -518,6 +537,7 @@ map.on("zoomend", (args: L.LeafletEvent) => {
     if (zoom >= 5) {
         restoreMarkersArray(transportPolys)
         restoreMarkersArray(truckMarkers)
+        restoreMarkersArray(bridgeMarkers)
     }
 })
 
