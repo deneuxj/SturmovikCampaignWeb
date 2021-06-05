@@ -267,6 +267,53 @@ interface Online {
     Players : string[]
 }
 
+interface TargetDifficulty {
+    Size: "LargeTarget" | "SmallTarget"
+    Mobility: number
+    Space: "Air" | "Ground" | "Water"
+}
+
+function targetDifficultyString(td : TargetDifficulty) {
+    var sz = "small"
+    switch(td.Size) {
+        case "LargeTarget": sz = "large"; break;
+        default: break;
+    }
+    var mob = ""
+    if (td.Mobility >= 2)
+        mob = "nimble";
+    else if (td.Mobility >= 1)
+        mob = "mobile"
+    else
+        mob = "stationary"
+    var space = ""
+    switch(td.Space) {
+        case "Air": space = "in the air"; break;
+        case "Ground": space = "on the ground"; break;
+        case "Water": space = "in sea or over rivers"; break;
+        default: break;
+    }
+    return `${sz} ${mob} targets ${space}`
+}
+
+interface BonusDomain {
+    UsingPlane: string
+    Target: TargetDifficulty
+    Ammo: string
+}
+
+interface Bonus {
+    Start: string
+    Bonus: number
+    Domain: BonusDomain
+}
+
+function bonusHtmlRow(bonus : Bonus) {
+    const start = `from ${bonus.Start} in a ${bonus.Domain.UsingPlane}`
+    const desc = targetDifficultyString(bonus.Domain.Target)
+    return `<tr><td>${start}</td><td>${desc} using ${bonus.Domain.Ammo}</td><td>${bonus.Bonus}</td></tr>`
+}
+
 // 
 // Commands
 //

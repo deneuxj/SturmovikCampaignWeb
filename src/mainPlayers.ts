@@ -154,9 +154,18 @@ function updatePlayers(player : string | null, pilot : string | null) {
         }
 
         if (pilot) {
+            const listBonuses = document.getElementById("list-bonuses")
+            removeAllChildren(listBonuses)
             const pilotData = await dataSource.getPilot(pilot)
             if (pilotData) {
                 await pilotClicked(pilotData.Pilot, pilotData.Missions)()
+            }
+            const experience = await dataSource.getBonuses(pilot)
+            if (experience) {
+                for (const bonus of experience) {
+                    const row = bonusHtmlRow(bonus)
+                    listBonuses?.insertAdjacentHTML("beforeend", row)
+                }
             }
         }
     }
