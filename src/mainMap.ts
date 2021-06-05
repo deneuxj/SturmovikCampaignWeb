@@ -263,6 +263,7 @@ function setAirfieldMarkers(world: World, ownerOf: (region: string) => string | 
 let truckMarkers: L.Marker[] = []
 async function setTruckMarkers(world: World, idx: number) {
     removeMarkersArray(truckMarkers)
+    removeMarkersArray(transportPolys)
     truckMarkers = []
     transportPolys = []
     const regions : Dict<Region> = {}
