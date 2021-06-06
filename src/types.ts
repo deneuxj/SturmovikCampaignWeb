@@ -311,7 +311,10 @@ interface Bonus {
 function bonusHtmlRow(bonus : Bonus) {
     const start = `from ${bonus.Start} in a ${bonus.Domain.UsingPlane}`
     const desc = targetDifficultyString(bonus.Domain.Target)
-    return `<tr><td>${start}</td><td>${desc} using ${bonus.Domain.Ammo}</td><td>${bonus.Bonus}</td></tr>`
+    var ammo = ""
+    if (bonus.Domain.Ammo)
+        ammo = " using " + bonus.Domain.Ammo.toLowerCase()
+    return `<tr><td>${start}</td><td>${desc}${ammo}</td><td>${(100 * bonus.Bonus).toFixed(3)}%</td></tr>`
 }
 
 // 
