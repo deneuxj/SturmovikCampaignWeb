@@ -49,7 +49,8 @@ function updatePlayers(player : string | null, pilot : string | null) {
                 const divPilotKills = document.getElementById("div-pilot-kills")
                 const divPilotCountry = document.getElementById("div-pilot-country")
                 const divPilotHealth = document.getElementById("div-pilot-health")
-
+                const listBonuses = document.getElementById("list-bonuses")
+    
                 selectedPilot = pilot
 
                 // Set pilot info box
@@ -59,6 +60,16 @@ function updatePlayers(player : string | null, pilot : string | null) {
                 setTextContent(divPilotCountry, pilot.Country)
                 setTextContent(divPilotHealth, healthString(pilot.Health))
                 
+                // Experience
+                removeAllChildren(listBonuses)
+                const experience = await dataSource.getBonuses(pilot.Id)
+                if (experience) {
+                    for (const bonus of experience) {
+                        const row = bonusHtmlRow(bonus)
+                        listBonuses?.insertAdjacentHTML("beforeend", row)
+                    }
+                }
+    
                 // Flights
                 removeAllChildren(listFlights)
                 for (const flight of flights) {
@@ -154,18 +165,9 @@ function updatePlayers(player : string | null, pilot : string | null) {
         }
 
         if (pilot) {
-            const listBonuses = document.getElementById("list-bonuses")
-            removeAllChildren(listBonuses)
             const pilotData = await dataSource.getPilot(pilot)
             if (pilotData) {
                 await pilotClicked(pilotData.Pilot, pilotData.Missions)()
-            }
-            const experience = await dataSource.getBonuses(pilot)
-            if (experience) {
-                for (const bonus of experience) {
-                    const row = bonusHtmlRow(bonus)
-                    listBonuses?.insertAdjacentHTML("beforeend", row)
-                }
             }
         }
     }
