@@ -108,6 +108,7 @@ const bounds = {
     rheinland: new L.LatLngBounds([-90, -180], [-10.87, -82.13]),
     stalingrad: new L.LatLngBounds([-90, -180], [25.471, 0]),
     kuban: new L.LatLngBounds([-90, -180], [-19.75, -78.52]),
+    moscow: new L.LatLngBounds([-90, -180], [45, -45])
 }
 
 // Get the bounds (leaflet's coordinate system) of a specific map and season
@@ -126,6 +127,9 @@ function getMapBounds(mapName: string) {
         case "kuban-spring":
         case "kuban-summer":
             return bounds.kuban;
+        case "moscow-autumn":
+        case "moscow-winter":
+            return bounds.moscow;
         default:
             return undefined;
     }
