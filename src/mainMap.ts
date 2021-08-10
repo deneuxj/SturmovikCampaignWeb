@@ -121,7 +121,7 @@ function getMapBounds(mapName: string) {
             return bounds.rheinland;
         case "stalingrad-summer-1942":
         case "stalingrad-autumn-1942":
-        case "stalingrad-winter-1942":
+        case "stalingrad-1942":
             return bounds.stalingrad;
         case "kuban-autumn":
         case "kuban-spring":
