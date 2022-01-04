@@ -17,8 +17,8 @@ const config = {
                     mapName = "stalingrad";
                 default:
                     mapName = map.split("-")[0];
-            }        
-            return `https://tiles.il2missionplanner.com/${mapName}/{z}/{x}/{y}.png`;
+            }
+            return `${window.location.protocol}//${window.location.hostname}:${window.location.port}/img/dist/${mapName}/{z}/{x}/{y}.png`;
         },
-    iconUrl: "https://il2missionplanner.com/img/"
+    iconUrl: `${window.location.protocol}//${window.location.hostname}:${window.location.port}/img/`
 }
